@@ -1,0 +1,9 @@
+asm {
+CALL (LB) _main
+HALT	
+}
+
+int main() {
+  return 10;
+}
+

@@ -1,0 +1,16 @@
+asm {
+CALL (LB) _main
+HALT	
+}
+
+int main (){
+  char r = 'C';
+  int i =  3;
+
+  i = r;
+
+
+  return 0;
+}
+
+

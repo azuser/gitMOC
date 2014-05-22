@@ -1,0 +1,22 @@
+asm {
+CALL (LB) _main
+HALT	
+}
+
+char unBloc(int a, int b, int c) {
+  if(a) {
+     int x;
+     int y;
+  } else {
+     int x;
+     int y;
+     int z;
+  }
+  int z = 3;
+  return 'c';
+}
+
+int main() {
+  char c = unBloc(1, 2, 3);
+  return 0;
+}

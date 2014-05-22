@@ -1,0 +1,12 @@
+#!/bin/sh
+EDIR=.
+# les jars associes
+EJAR=${EDIR}/eggc-5.3.1.jar:.
+GJAR=${EJAR}:.
+
+#--------------------------------------------------------
+# java, javac, jar
+#JDIR=/usr/local/jdk1.6/bin
+JDIR=/usr/bin
+
+${JDIR}/java -classpath .:${GJAR} moc.compiler.MOCC $*

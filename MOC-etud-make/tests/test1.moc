@@ -1,0 +1,17 @@
+asm {
+CALL (LB) _main
+HALT
+}
+// passage
+int addition (int a){
+a = a + 1;
+}
+
+int main(){
+int sholene;
+int leger = 3;
+
+sholene = addition(leger);
+
+return sholene;
+}

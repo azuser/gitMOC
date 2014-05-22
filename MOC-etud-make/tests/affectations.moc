@@ -1,0 +1,37 @@
+asm {
+CALL (LB) _main
+HALT	
+}
+
+int fRetour(int a) {
+   if(a) {
+	return a;
+   } else {
+	return 19;
+   }
+}
+
+int f203() {
+   return 203;
+}
+
+void fDecl() {
+  int a = 1;
+  char b = 'e';
+  int c = 23;
+  int d = a;
+  int x = f203();
+}
+
+
+
+int main() {
+  int a = 1;
+  fDecl();
+  int d4 = fRetour(4);
+  int d19 = fRetour(0);
+  int b;
+  a = f203()/203;
+  b = a *4;
+  return 215;
+}

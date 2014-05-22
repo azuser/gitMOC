@@ -1,0 +1,10 @@
+asm {
+CALL (LB) _main
+HALT	
+}
+
+char foo(int a, int b, int c) {
+}
+
+int main() {
+}

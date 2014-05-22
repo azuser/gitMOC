@@ -1,0 +1,31 @@
+asm {
+CALL (LB) _main
+HALT	
+}
+
+void testIf() {
+  //if(1) {
+  //}
+}
+
+int testCalculs() {
+  return 1 * 2;
+}
+int ifInt() { 
+  if(1) {
+	return 3;
+  } else {
+	return 0;
+  }
+}
+
+
+
+int main() {
+  //char c = infSupEgal(1, 2);
+  //if (c = '=') {
+	//return 0;
+  //}
+  int x;
+  return 20; //intBool()//(1);
+}

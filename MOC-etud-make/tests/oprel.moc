@@ -1,0 +1,35 @@
+asm {
+CALL (LB) _main
+HALT	
+}
+
+int fPlus(int a, int b) {
+  return a+b;
+}
+
+int fMoins(int a, int b) {
+  return a-b;
+}
+
+int fInf(int a, int b) {
+  return a<b;
+}
+
+int fSup(int a, int b) {
+  return a>b;
+}
+
+int main() {
+  int res;
+  int a103 = 103;
+  int a3 = 3;
+  
+  res = fSup(a103, a3); //vrai :1
+  res = fInf(a103, a3); // faux : 0
+  res = (fInf(a103, a3) == fSup(a3, a103)); // vrai : 1
+  res = (res != res); // faux : 0
+  char b = 'e';
+  int c = 23;
+
+  return 1+2+3-4*2; // -2
+}

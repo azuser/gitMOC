@@ -1,0 +1,73 @@
+; Generated code for tests/calculs.moc.
+; Do not modify by hand
+	; code in inline : start
+; inline code_asm
+
+
+	CALL (LB) _main
+
+
+	HALT
+
+
+	; code in inline : end
+_f:
+	; declaration sans initialisation de x de taille 1 en dep[LB]
+	PUSH 1
+	POP(0) 1
+
+	; retour
+	RETURN (3) 0
+	; fin retour
+_mul:
+	; retour
+	LOADL 2	; entier
+	LOADL 5	; entier
+	SUBR IMul
+	RETURN (0) 1
+	; fin retour
+	POP(0) 0
+
+_main:
+	; empilement des parametres
+	; empilement des parametres
+	; parametre de sous-programme
+	LOADL 4	; entier
+	LOADL 5	; entier
+	SUBR IMul
+	; charger le parametre ?
+	; parametre de sous-programme
+	LOADL 2	; entier
+	; charger le parametre ?
+	; parametre de sous-programme
+	LOADL 1	; entier
+	; charger le parametre ?
+	; Appel def
+	CALL(SB) _f
+	POP(0) 0
+	; empilement des parametres
+	; empilement des parametres
+	; parametre de sous-programme
+	LOADL 8	; entier
+	; charger le parametre ?
+	; parametre de sous-programme
+	LOADL 7	; entier
+	; charger le parametre ?
+	; parametre de sous-programme
+	LOADL 6	; entier
+	; charger le parametre ?
+	; Appel def
+	CALL(SB) _f
+	POP(0) 0
+	; retour
+	LOADL 2	; entier
+	LOADL 5	; entier
+	SUBR IMul
+	LOADL 3	; entier
+	SUBR IMul
+	LOADL 5	; entier
+	SUBR IDiv
+	RETURN (0) 1
+	; fin retour
+	POP(0) 0
+

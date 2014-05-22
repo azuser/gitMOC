@@ -1,0 +1,381 @@
+; Generated code for tests/mc.moc.
+; Do not modify by hand
+	; code in inline : start
+; inline code_asm
+
+
+	CALL (LB) _main
+	; appel au point d'entree du programme
+
+	HALT
+	; arret de la machine
+
+	; code in inline : end
+_malloc:
+	; code in inline : start
+; inline code_asm
+
+
+	LOAD (1) -1[LB]
+	; acces au parametre taille
+
+	SUBR Malloc
+	; allocation
+
+	RETURN (1) 1
+
+
+	; code in inline : end
+	; fin d'un bloc : pop
+	POP(0) 0
+
+_log:
+	; declaration sans initialisation de x de taille 1 en [3/Register [name=LB, num=0]]
+	PUSH 1
+	LOADL 12	; entier
+	STORE(1) 3[LB]
+	; code de la nouvelle de la variable affectee
+	LOAD (1) 3[LB]
+	; declaration => pop
+	POP(0) 1
+	; fin de declaration de x
+	; code in inline : start
+; inline code_asm
+
+
+	LOAD (1) -1[LB]
+	; acces au premier parametre
+
+	SUBR Sout
+	; afficher message
+
+	LOAD (1) -2[LB]
+	; acces au deuxieme parametre
+
+	LOADL 1
+
+
+	SUBR IAdd
+
+
+	STORE (1) 3[LB]
+	; ecrire valeur + 1 dans x
+
+	LOAD (1) 3[LB]
+	; acces a la variable x
+
+	SUBR IOUT
+	; afficher x
+
+	SUBR LN
+
+
+	RETURN (2) 0
+
+
+	; code in inline : end
+	; fin d'un bloc : pop
+	POP(0) 1
+
+	; retour
+	RETURN (0) 2
+	; fin retour
+_foo:
+	; pas d'affectation : code de l'expression
+	; declaration sans initialisation de xxx de taille 1 en [3/Register [name=LB, num=0]]
+	PUSH 1
+	LOAD (1) 3[LB]
+	; declaration => pop
+	POP(0) 1
+	; fin de declaration de xxx
+	; acces a xxx
+	LOADL 100	; entier
+	STORE(1) 3[LB]
+	; code de la nouvelle de la variable affectee
+	LOAD (1) 3[LB]
+	; valeur inutile
+	POP(0) 1
+	; declaration sans initialisation de a de taille 1 en [4/Register [name=LB, num=0]]
+	PUSH 1
+	; operation binaire 
+	; acces a n
+	LOAD (1) -1[LB]
+	LOADL 999	; entier
+	SUBR IAdd
+	STORE(1) 4[LB]
+	; code de la nouvelle de la variable affectee
+	LOAD (1) 4[LB]
+	; declaration => pop
+	POP(0) 1
+	; fin de declaration de a
+	; declaration sans initialisation de m de taille 1 en [5/Register [name=LB, num=0]]
+	PUSH 1
+	; empilement des parametres
+	; empilement des parametres
+	; parametre de sous-programme
+	; pas d'affectation : code de l'expression
+	LOADL 1	; entier
+	; charger le parametre ?
+	; Appel de malloc
+	CALL(SB) _malloc
+	STORE(1) 5[LB]
+	; code de la nouvelle de la variable affectee
+	LOAD (1) 5[LB]
+	; declaration => pop
+	POP(0) 1
+	; fin de declaration de m
+	; acces a a
+	; operation binaire 
+	; acces a m
+	; lecture du contenu de l'adresse de [5/Register [name=LB, num=0]]
+	LOADA 5[LB]
+	LOADL 666	; entier
+	SUBR IAdd
+	STORE(1) 4[LB]
+	; code de la nouvelle de la variable affectee
+	LOAD (1) 4[LB]
+	; valeur inutile
+	POP(0) 1
+	; declaration sans initialisation de k de taille 1 en [6/Register [name=LB, num=0]]
+	PUSH 1
+	; empilement des parametres
+	; empilement des parametres
+	; parametre de sous-programme
+	; pas d'affectation : code de l'expression
+	LOADL 2	; entier
+	; charger le parametre ?
+	; Appel de malloc
+	CALL(SB) _malloc
+	STORE(1) 6[LB]
+	; code de la nouvelle de la variable affectee
+	LOAD (1) 6[LB]
+	; declaration => pop
+	POP(0) 1
+	; fin de declaration de k
+	; acces a k
+	; lecture du contenu de l'adresse de [6/Register [name=LB, num=0]]
+	LOADA 6[LB]
+	; valeur affectee
+	; acces a m
+	LOAD (1) 5[LB]
+	; affectation
+	STOREI (1)
+	; code de la nouvelle de la variable affectee
+	; acces a k
+	; lecture du contenu de l'adresse de [6/Register [name=LB, num=0]]
+	LOADA 6[LB]
+	; lecture indirecte
+	LOADI (1)
+	; valeur inutile
+	POP(0) 1
+	; acces a k
+	; lecture du contenu de l'adresse de [6/Register [name=LB, num=0]]
+	LOADA 6[LB]
+	; lecture indirecte
+	LOADI (1)
+	; valeur affectee
+	LOADL 12	; entier
+	; affectation
+	STOREI (1)
+	; code de la nouvelle de la variable affectee
+	; acces a k
+	; lecture du contenu de l'adresse de [6/Register [name=LB, num=0]]
+	LOADA 6[LB]
+	; lecture indirecte
+	LOADI (1)
+	; lecture indirecte
+	LOADI (1)
+	; valeur inutile
+	POP(0) 1
+	; declaration sans initialisation de b de taille 1 en [7/Register [name=LB, num=0]]
+	PUSH 1
+	; operation binaire 
+	; acces a k
+	; lecture du contenu de l'adresse de [6/Register [name=LB, num=0]]
+	LOADA 6[LB]
+	; lecture indirecte
+	LOADI (1)
+	LOADL 9999	; entier
+	SUBR IAdd
+	STORE(1) 7[LB]
+	; code de la nouvelle de la variable affectee
+	LOAD (1) 7[LB]
+	; declaration => pop
+	POP(0) 1
+	; fin de declaration de b
+	; acces a m
+	; cast en pointeurde -- 
+	; empilement des parametres
+	; empilement des parametres
+	; parametre de sous-programme
+	; pas d'affectation : code de l'expression
+	LOADL 10	; entier
+	; charger le parametre ?
+	; Appel de malloc
+	CALL(SB) _malloc
+	; -- : valeur castee
+	STORE(1) 5[LB]
+	; code de la nouvelle de la variable affectee
+	LOAD (1) 5[LB]
+	; valeur inutile
+	POP(0) 1
+	; retour
+	; pas d'affectation : code de l'expression
+	; acces a m
+	LOAD (1) 5[LB]
+	RETURN (1) 1
+	; fin retour
+	; fin d'un bloc : pop
+	POP(0) 5
+
+_ref:
+	; declaration sans initialisation de p de taille 1 en [3/Register [name=LB, num=0]]
+	PUSH 1
+	; empilement des parametres
+	; empilement des parametres
+	; parametre de sous-programme
+	; pas d'affectation : code de l'expression
+	; acces a x
+	LOAD (1) -1[LB]
+	; charger le parametre ?
+	; Appel de malloc
+	CALL(SB) _malloc
+	STORE(1) 3[LB]
+	; code de la nouvelle de la variable affectee
+	LOAD (1) 3[LB]
+	; declaration => pop
+	POP(0) 1
+	; fin de declaration de p
+	; retour
+	; pas d'affectation : code de l'expression
+	; acces a p
+	LOAD (1) 3[LB]
+	RETURN (1) 1
+	; fin retour
+	; fin d'un bloc : pop
+	POP(0) 1
+
+_bar:
+	; declaration sans initialisation de u de taille 1 en [3/Register [name=LB, num=0]]
+	PUSH 1
+	LOADL 301	; entier
+	STORE(1) 3[LB]
+	; code de la nouvelle de la variable affectee
+	LOAD (1) 3[LB]
+	; declaration => pop
+	POP(0) 1
+	; fin de declaration de u
+	; declaration sans initialisation de v de taille 1 en [4/Register [name=LB, num=0]]
+	PUSH 1
+	LOADL 401	; entier
+	STORE(1) 4[LB]
+	; code de la nouvelle de la variable affectee
+	LOAD (1) 4[LB]
+	; declaration => pop
+	POP(0) 1
+	; fin de declaration de v
+	; pas d'affectation : code de l'expression
+	; declaration sans initialisation de result de taille 1 en [5/Register [name=LB, num=0]]
+	PUSH 1
+	LOAD (1) 5[LB]
+	; declaration => pop
+	POP(0) 1
+	; fin de declaration de result
+	; acces a result
+	; empilement des parametres
+	; empilement des parametres
+	; parametre de sous-programme
+	; pas d'affectation : code de l'expression
+	; operation binaire 
+	; operation binaire 
+	; operation binaire 
+	LOADL 33	; entier
+	; acces a a
+	LOAD (1) -1[LB]
+	SUBR IMul
+	; acces a b
+	LOAD (1) -2[LB]
+	SUBR ISub
+	; pas d'affectation : code de l'expression
+	; operation binaire 
+	; operation binaire 
+	; operation binaire 
+	; operation binaire 
+	LOADL 55	; entier
+	SUBR INeg
+	; acces a u
+	LOAD (1) 3[LB]
+	SUBR IMul
+	LOADL 22	; entier
+	SUBR IDiv
+	LOADL 11	; entier
+	SUBR IMod
+	; acces a v
+	LOAD (1) 4[LB]
+	SUBR IDiv
+	SUBR IGtr
+	; charger le parametre ?
+	; Appel de foo
+	CALL(SB) _foo
+	STORE(1) 5[LB]
+	; code de la nouvelle de la variable affectee
+	LOAD (1) 5[LB]
+	; valeur inutile
+	POP(0) 1
+	; retour
+	; pas d'affectation : code de l'expression
+	; acces a result
+	LOAD (1) 5[LB]
+	RETURN (1) 2
+	; fin retour
+	; fin d'un bloc : pop
+	POP(0) 3
+
+_main:
+	; declaration sans initialisation de c de taille 1 en [3/Register [name=LB, num=0]]
+	PUSH 1
+	LOADL 'a'	; caractere
+	STORE(1) 3[LB]
+	; code de la nouvelle de la variable affectee
+	LOAD (1) 3[LB]
+	; declaration => pop
+	POP(0) 1
+	; fin de declaration de c
+	; declaration sans initialisation de y de taille 1 en [4/Register [name=LB, num=0]]
+	PUSH 1
+	LOADL 999	; entier
+	STORE(1) 4[LB]
+	; code de la nouvelle de la variable affectee
+	LOAD (1) 4[LB]
+	; declaration => pop
+	POP(0) 1
+	; fin de declaration de y
+	; if
+	; pas d'affectation : code de l'expression
+	; operation binaire 
+	; acces a y
+	LOAD (1) 4[LB]
+	LOADL 0	; entier
+	SUBR IEq
+	JUMPIF(0) label1
+	; then
+	; fin d'un bloc : pop
+	POP(0) 0
+
+	JUMP label0
+	; else
+label1 :
+	; fin d'un bloc : pop
+	POP(0) 0
+
+label0 :
+	; end if
+	; retour
+	; pas d'affectation : code de l'expression
+	; acces a y
+	LOAD (1) 4[LB]
+	RETURN (1) 0
+	; fin retour
+	; fin d'un bloc : pop
+	POP(0) 2
+

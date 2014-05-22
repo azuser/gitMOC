@@ -1,0 +1,4 @@
+asm {
+CALL (LB) _main
+HALT	
+}

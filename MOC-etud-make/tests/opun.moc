@@ -1,0 +1,33 @@
+asm {
+CALL (LB) _main
+HALT	
+}
+
+int fPlus(int a) {
+  return +a;
+}
+
+int fMoins(int a) {
+  return -a;
+}
+
+int fNon(int a) {
+  return !a;
+}
+
+int main() {
+  int res;
+  int vrai = 103;
+  int faux = 0;
+  
+  res = fPlus(vrai); //103
+  res = fMoins(vrai); // -103
+  res = fMoins(res); // 103
+  res = fMoins(0); // 0
+  res = fNon(vrai); // 0 : faux
+  res = fNon(faux); // 1 : vrai
+  char b = 'e';
+  int c = 23;
+
+  return fMoins(faux); // 0
+}
