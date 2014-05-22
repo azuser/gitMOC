@@ -1,6 +1,3 @@
--- je teste les modif 
---  wfkgk
--- mais prend mes modifications 
 ----------------------------------------------------------------------------------------------------------
 -- Grammaires de MC et MOC                         --
 -- La grammaire de MOC est obtenue en decommentant --
@@ -21,9 +18,6 @@ inh tPointeurNull : DTYPE for PARFS, PARFSX, TYPE, PARF,  STYPE, ENTITES, FONCTI
 inh tVoid  : DTYPE for PARFS, PARFSX, STYPE, ENTITES, TYPE, PARF, FONCTION, BLOC, INSTS, INST, SIX, AFFX, E, A, AX, R, RX, T, TX, F, ARGS, ARGSX;
 inh tString : DTYPE for PARFS, PARFSX, STYPE, PARF, TYPE, ENTITES, FONCTION, BLOC, INSTS, INST, SIX, AFFX, E, A, AX, R, RX, T, TX, F, ARGS, ARGSX;
 inh regLB : Register for PARFS, PARFSX, TYPE, PARF,  STYPE, ENTITES, FONCTION, BLOC, INSTS, INST, SIX, AFFX, E, A, AX, R, RX, T, TX, F, ARGS, ARGSX;
--- test initialisation 
-syn initialiser : BOOLEAN for F, A, R, T, RX, TX, AX, E;   -- ***************************************
-syn var         : INFOVAR for F, A, R, T;   -- ***************************************
 --attributes  
 syn type  : DTYPE for TYPE, REFS, STYPE, F, E, A, T, R, AFFX;
 inh htype : DTYPE for REFS, AFFX;
@@ -35,6 +29,7 @@ syn est_adresse : BOOLEAN for F, T, TX, A, E, RX, R, AX;--, T, F;
 inh hest_adresse : BOOLEAN for AFFX, TX, RX, AX;
 syn adresse : Emplacement for F, TX, T, A, E, RX, R, AX;
 inh hadresse : Emplacement for AFFX, TX, RX, AX;
+inh lire_resultat : BOOLEAN for E, AFFX; -- indique si AFFX doit generer le code pour lire le terme de gauche
 -- initialisation  
    
 -- la table de symboles
@@ -244,17 +239,17 @@ end
 }
 #aff {
 do
---  write "\n";
---  write "\n";
---  write "Table des fonctions visibles par " + ident^txt;
---  write "\n";
---  write FONCTION^tds_fonction.toString();
+  write "\n";
+  write "\n";
+  write "Table des fonctions visibles par " + ident^txt;
+  write "\n";
+  write FONCTION^tds_fonction.toString();
   --write "\n";
 end
 }
 #gen {
 do
---  write "Taille des parametres de " + ident^txt + " : "+ tailleparams +"\n";
+  write "Taille des parametres de " + ident^txt + " : "+ tailleparams +"\n";
   leCode := FONCTION^machine.genFonction(ident^txt, BLOC^code);
   tRetour := TYPE^type;
   if(tRetour.isVoid()) then
@@ -394,8 +389,6 @@ local
   t : TDS;
 do
   i := new INFOVAR(TYPE^type, new Emplacement(PARF^hadr, PARF^regLB));
-  -- je considere que les parametres sont initialise : la verification sera fait lors de l'execution 
-  i.setInitialiser();
   p := PARF^hparams;
   p.inserer(TYPE^type);
   PARF^params := p;
@@ -561,7 +554,7 @@ end
 }
 
 -- declaration de variable locale avec ou sans init
-INST ->  TYPE ident #tds #adresse #code_gauche AFFX pv  #verifCompatibilite #isReturn #gen #setInit ;
+INST ->  TYPE ident #tds #adresse #lire_resultat #code_gauche AFFX pv  #verifCompatibilite #isReturn #gen ;
 global
   i : INFO;
   adresse : INTEGER;
@@ -580,6 +573,11 @@ do
   INST^stds := INST^tds;
 end
 }
+#lire_resultat {
+do
+  AFFX^lire_resultat := false;
+end
+}
 #adresse {
 do
   adresse := INST^hadr + TYPE^type.getTaille();
@@ -592,16 +590,6 @@ do
    AFFX^hadresse :=  empl;
    AFFX^hest_adresse := false;
    AFFX^htype := TYPE^type;
-end
-}
-#setInit{
-do
-   if  ~AFFX^vide then
-        match i with INFOVAR then
-                i.setInitialiser();
-                --write("init change ");
-        end
-   end
 end
 }
 #verifCompatibilite {
@@ -625,22 +613,28 @@ end
 local
     leCode : STRING;
 do
-    INST^code := AFFX^code + INST^machine.genComment("declaration => pop") + INST^machine.genFree(TYPE^type.getTaille()) + INST^machine.genComment("fin de declaration de "+ident^txt);
+    INST^code := AFFX^code  + INST^machine.genComment("fin de declaration de "+ident^txt);
+    -- := AFFX^code + INST^machine.genComment("declaration => pop") + INST^machine.genFree(TYPE^type.getTaille()) + INST^machine.genComment("fin de declaration de "+ident^txt);
 end
 }
 
 -- instruction expression (affectation et appel de procedure)
-INST -> E pv #adresse #stds #isReturn #gen ;
+INST -> #lire_resultat E pv #adresse #stds #isReturn #gen ;
 #gen {
 do
     -- consommer la valeur si elle existe
-    INST^code := E^code + INST^machine.genComment("valeur inutile")+INST^machine.genFree(E^type.getTaille());
+    INST^code :=  E^code;
+    -- E^code + INST^machine.genComment("valeur inutile")+INST^machine.genFree(E^type.getTaille());
 end
 }
-
 #adresse {
 do
   INST^adr := INST^hadr;
+end
+}
+#lire_resultat {
+do
+  E^lire_resultat := false;
 end
 }
 #stds {
@@ -688,7 +682,12 @@ end
 }
 
 -- conditionnelle
-INST ->   si paro E parf #tds #passeTypeRet BLOC SIX #adresse #stds #isReturn #gen;
+INST ->   si paro #lire_resultat E parf #tds #passeTypeRet BLOC SIX #adresse #stds #isReturn #gen;
+#lire_resultat{
+do
+  E^lire_resultat := true;
+end
+}
 #passeTypeRet{
 do
    BLOC^typeRet := INST^typeRet;
@@ -757,9 +756,14 @@ end
 }
 
 -- retour de fonction
-INST ->  retour  E pv #adresse #tds #verifReturn #isReturn #gen ;
-#adresse {
+INST ->  retour #lire_resultat E pv #adresse #tds #verifReturn #isReturn #gen ;
+#lire_resultat{
 do
+  E^lire_resultat := true;
+end
+}
+#adresse {
+do 
   INST^adr := INST^hadr;
 end
 }
@@ -830,7 +834,7 @@ end
 -----------------------------------------------------------------------
 -- ici je demande est ce que j ai besoin de verifier la compatibilite des types 
 -- Si AFFX^type est nul alors pas besoin de verifier 
-E ->   A  #getType #code_gauche AFFX #verifCompatible  #estAffectable #gen #testInit  ;
+E ->   A  #getType #code_gauche AFFX #verifCompatible #estAffectable #gen ;
 global
     typeE : DTYPE;
 #getType {
@@ -847,23 +851,6 @@ do
     AFFX^htype := typeE; 
 end
 }
--- **************************************************************
-#testInit {
-do
-   if AFFX^vide then
-        E^initialiser := A^initialiser;
-   else
-       if A^var /= null then
-        A^var.setInitialiser(); -- la rendre initiliser
-        E^initialiser := true;
-       else
-        error (B_100, " erreur affectation **");
-        E^initialiser := false;
-       end
-   end
-end
-}
--- ***********************************************
 #verifCompatible {
 local 
    compValue : BOOLEAN;
@@ -904,7 +891,8 @@ end
 }
 
 -- affectation  : laisse en somment de pile la valeur affectee
-AFFX -> affect A #getType #estVide #gen #testInit ;
+AFFX -> affect A #getType #estVide #gen ;
+-- si lire_resultat alors genere le code pour lire le resultat apres affectation sion null
 global
     t : DTYPE;
 #getType {
@@ -947,7 +935,7 @@ do
    end
 -- recuperer l'adresse du terme de gauche
 -- affecter
--- laisser en sommet de pile la nouvelle valeur de la variable affectee
+-- laisser en sommet de pile la nouvelle valeur de la variable affectee ssi lire_resultat
    code_valeur_gauche := AFFX^machine.genComment("code de la nouvelle de la variable affectee");
    empl_gauche := AFFX^hadresse;
    if empl_gauche /= null then
@@ -963,24 +951,19 @@ do
         error(Interne_adresse, "adresse d'affectation inexistante 1");
      end
    end
-   AFFX^code := leCode + code_valeur_gauche;
-end
-}
--- ******************************************************************
-#testInit {
-do
-   if ~A^initialiser then
-        error(B_55, " cote droit non initialise");
+   if AFFX^lire_resultat then
+      AFFX^code := leCode + code_valeur_gauche;
+   else
+      AFFX^code := leCode;
    end
 end
 }
--- ******************************************************************
-
 
 AFFX ->  #getType #estVide #gen ;
+-- si lire_resultat alors genere le code pour lire le resultat sinon null
 #getType {
 do 
-	AFFX^type := null;
+   AFFX^type := null;
 end 
 }
 #estVide{
@@ -999,28 +982,31 @@ do
     
     -- recuperer l'adresse du terme de gauche
     -- laisser en sommet de pile la valeur du terme de gauche
-    leCode := AFFX^machine.genComment("pas d'affectation : code de l'expression");
+    leCode := AFFX^machine.genComment("pas d'affectation : code de l'expression") + AFFX^code_gauche;
     
     empl_gauche := AFFX^hadresse;
     if empl_gauche /= null then
      -- empl_gauche est l'adresse du terme gauche
-     leCode := leCode +  AFFX^code_gauche + AFFX^machine.genReadMem(empl_gauche, AFFX^htype.getTaille());
+     code_valeur_gauche := AFFX^machine.genReadMem(empl_gauche, AFFX^htype.getTaille());
     else
         if AFFX^hest_adresse then
             -- il y a l'adresse de l'expression en sommet de pile
-            leCode := leCode + AFFX^code_gauche + AFFX^machine.genReadIndirectMem(AFFX^htype.getTaille());   
+            code_valeur_gauche := AFFX^machine.genReadIndirectMem(AFFX^htype.getTaille());   
         else
             -- le code correspond a une constante ou a un appel de procedure : transmettre
-            leCode := leCode + AFFX^code_gauche;
+            code_valeur_gauche := "";
         end
     end
-    AFFX^code := leCode;
+    if AFFX^lire_resultat then
+      AFFX^code := leCode + code_valeur_gauche;
+    else
+      AFFX^code := leCode;
+    end
 end
 }
 
-
 -- relation
-A ->   R #hcode #hadresse AX  #verifType #getType #estAffectable #adresse #gen #testInit ;
+A ->   R #hcode #hadresse AX  #verifType #getType #estAffectable #adresse #gen;
 #hcode {
 do
   AX^hcode := R^code;
@@ -1071,17 +1057,8 @@ do
   A^code := AX^code;
 end
 } 
--- ******************************************************************
-#testInit {
-do
-   A^var := R^var;
-   A^initialiser := R^initialiser & AX^initialiser;
-end
-}
--- ******************************************************************
 
-
-AX -> OPREL R #verifType #extension #adresse #gen #testInit ;
+AX -> OPREL R #verifType #extension #adresse #gen;
 #verifType {
 do
     if ~R^type.isOperable() then 
@@ -1128,14 +1105,8 @@ do
    AX^code := AX^machine.genOpBinaire(codegauche, OPREL^code, codedroit); 
 end
 }
-#testInit {
-do
-   AX^initialiser := R^initialiser;
-end 
-}
 
-
-AX -> #extension #adresse #gen #testInit ;
+AX -> #extension #adresse #gen;
 #extension{
 do 
    AX^vide := true; 
@@ -1150,11 +1121,6 @@ end
 #gen {
 do
   AX^code := AX^hcode;
-end
-}
-#testInit {
-do
-   AX^initialiser := true;
 end
 }
 
@@ -1196,17 +1162,7 @@ do
 end
 }
 
-R ->  T #hcode #hadresse RX  #verifType #getType #estAffectable #adresse #gen #testInit;
--- ******************************************************************
-#testInit {
-do
-   R^var := T^var;
-   R^initialiser := T^initialiser & RX^initialiser;
-   --write ("debugPoint2 ****"+ T^var.toString());
-end
-}
--- ******************************************************************
-
+R ->  T #hcode #hadresse RX #verifType #getType #estAffectable #adresse #gen;
 #hcode {
 do
    RX^hcode := T^code;
@@ -1259,7 +1215,7 @@ end
 }
 
 -- additions ...
-RX ->   OPADD  T #verifType #hcode #hadresse RX #extension #adresse #gen #testInit ;
+RX ->   OPADD  T #verifType #hcode #hadresse RX #extension #adresse #gen;
 #hcode {
 local
    adr_gauche : Emplacement;
@@ -1318,13 +1274,8 @@ do
    RX^vide := false; 
 end 
 }
-#testInit {
-do
-   RX^initialiser := T^initialiser & RX1^initialiser;
-end
-}
 
-RX -> #extension #adresse #gen #testInit ;
+RX -> #extension #adresse #gen;
 #extension {
 do
    RX^vide := true; 
@@ -1339,11 +1290,6 @@ end
 #gen {
 do
   RX^code := RX^hcode;
-end
-}
-#testInit {
-do
-   RX^initialiser := true;
 end
 }
 
@@ -1368,7 +1314,7 @@ end
 }
 
 -- multiplication, ...
-T ->  F #hcode #hadresse TX   #verifType #getType #estAffectable #adresse #testInit #gen  ;
+T ->  F #hcode #hadresse TX   #verifType #getType #estAffectable #adresse #gen ;
 #hcode {
 do
    TX^hcode := F^code;
@@ -1389,16 +1335,6 @@ do
  end 
 end 
 }
-
--- ******************************************************************
-#testInit {
-do
-   T^initialiser := F^initialiser & TX^initialiser;
-   T^var := F^var;
-end
-}
--- ******************************************************************
-
 #getType{
 do
    if TX^vide then 
@@ -1430,7 +1366,7 @@ do
 end
 }
 
-TX ->  OPMUL  F #verifType #hcode #hadresse TX #extension #testInit #adresse #gen;
+TX ->  OPMUL  F #verifType #hcode #hadresse TX #extension #adresse #gen;
 #verifType {
 do
     if ~F^type.isOperable() then 
@@ -1489,16 +1425,8 @@ do
    TX^code := TX1^code;
 end
 }
--- ******************************************************************
-#testInit {
-do
-   TX^initialiser := F^initialiser & TX1^initialiser;
-end
-}
--- ******************************************************************
 
-
-TX -> #extension #adresse #gen #testInit ;
+TX -> #extension #adresse #gen ;
 #extension {
 do
   TX^vide := true;
@@ -1513,11 +1441,6 @@ end
 #gen {
 do
   TX^code := TX^hcode;
-end
-}
-#testInit {
-do
-   TX^initialiser := true;
 end
 }
 
@@ -1550,7 +1473,7 @@ end
 
 -- expressions de base
 -- Constante entiere
-F -> entier #testInit  #getType #estAffectable #gen;
+F -> entier  #getType #estAffectable #gen;
 #getType {
 do
    F^type := F^tInt;
@@ -1568,14 +1491,6 @@ do
   F^adresse := null;
 end
 }
--- *********************************************************
-#testInit {
-do
-   F^initialiser := true;
-   F^var := null;
-end
-}
--- *********************************************************
 
 -- Constante chaine : non traite
 --F -> chaine  #getType #estAffectable #gen ;
@@ -1599,7 +1514,7 @@ end
 
 
 -- Constante caractere
-F -> caractere #testInit  #getType #estAffectable #gen ;
+F -> caractere  #getType #estAffectable #gen ;
 #getType {
 do 
    F^type := F^tChar;
@@ -1617,17 +1532,9 @@ do
   F^adresse := null;
 end
 }
--- *********************************************************
-#testInit {
-do
-   F^initialiser := true;
-   F^var := null;
-end
-}
--- *********************************************************
 
 -- expression unaire
-F ->  OPUN  F  #verifType #getType #testInit #estAffectable #adresse #gen;
+F ->  OPUN  F  #verifType #getType #estAffectable #adresse #gen;
 #verifType {
 do
     if ~F1^type.isOperable() then 
@@ -1672,14 +1579,6 @@ do
   end
 end
 }
--- *********************************************************
-#testInit {
-do
-   F^initialiser := F1^initialiser;
-   F^var := null;
-end
-}
--- *********************************************************
 
 -- operateurs unaires
 OPUN -> plus  #gen;
@@ -1702,7 +1601,7 @@ end
 }
 
 -- pointeur NULL
-F -> null  #getType #estAffectable #adresse #testInit #gen ;
+F -> null  #getType #estAffectable #adresse #gen ;
 #getType {
 do 
    F^type := F^tPointeurNull;
@@ -1724,18 +1623,14 @@ do
   F^code := F^machine.genComment("pointeur null");
 end
 }
--- *********************************************************
-#testInit {
-do
-   F^initialiser := true;
-   F^var := null;
-end
-}
--- *********************************************************
-
  
 -- expression parenthesee
-F ->  paro E parf #getType #estAffectable #adresse #gen #testInit ;
+F ->  paro #lire_resultat E parf #getType #estAffectable #adresse #gen;
+#lire_resultat { -- ??? pas sur
+do
+   E^lire_resultat := false;
+end
+}
 #getType {
 do 
    F^type := E^type;
@@ -1757,17 +1652,9 @@ do
   F^code := E^code;
 end
 }
--- *********************************************************
-#testInit {
-do
-   F^initialiser := E^initialiser;
-   F^var := null;
-end
-}
--- *********************************************************
 
 
-F ->  paro TYPE parf  F  #verifCast #getType #estAffectable #gen #testInit ;
+F ->  paro TYPE parf  F #verifCast #getType #estAffectable #gen;
     -- cast est ce que c est castable et puis effectue le cast 
 #verifCast{
 do
@@ -1794,22 +1681,9 @@ do
   F^adresse := F1^adresse; 
 end
 }
--- *********************************************************
-#testInit {
-do
-   if ~F1^initialiser then
-        error(B_51, " pas possible de caster une valeur non init");
-        F^initialiser := false;
-   else
-       F^initialiser := true;
-   end
-   F^var := null;
-end
-}
--- *********************************************************
 
 -- appel de sous-programme
-F ->  ident  paro #params ARGS parf  #gen #getType #estAffectable #testInit ;
+F ->  ident  paro #params ARGS parf #gen #getType #estAffectable ;
 -- on verifie ici la declaration de la fonction et on recupere le infofonction
 global   
   i : INFOFONCTION;
@@ -1853,17 +1727,9 @@ do
    F^affectable := false;
 end
 }
--- *********************************************************
-#testInit {
-do
-   F^var := null;
-   F^initialiser := true;
-end
-}
--- *********************************************************
 
 -- acces variable
-F ->  ident #gen #getType #testInit  #estAffectable ;
+F ->  ident #gen #getType #estAffectable ;
 global 
    i : INFOVAR;
    type : DTYPE;
@@ -1881,7 +1747,7 @@ do
      match iTemp with INFOVAR then
         i := iTemp;
         type := i.getType();
-        F^code := F^machine.genComment("acces a "+ident^txt);
+        F^code := F^machine.genComment("acces a "+ident^txt);--genLire(ident^txt, type.getTaille(), i.getEmpl());
         F^adresse := i.getEmpl();
         F^est_adresse := false;
     else
@@ -1891,22 +1757,6 @@ do
   end
 end 
 }
--- *********************************************************
-#testInit {
-do
-        write ("je passe : "+ident^txt+"\n");
-        if i = null then 
-               write("je suis null \n ");
-        else 
-              write("je ne suis pas  null \n ");
-        end 
-        F^var := i;
-        F^initialiser := i.getInitialiser();
-end
-}
--- *********************************************************
-
-
 #getType {
 do
    F^type := type;
@@ -1919,7 +1769,7 @@ end
 }
 
 ---- acces zone pointee
-F -> mult F #getType #estAffectable #testInit #adresse;
+F -> mult F #getType #estAffectable #adresse;
 #getType{
 do 
     match F1^type with POINTEUR then
@@ -1957,15 +1807,6 @@ do
     F^adresse := null; -- adresse inconnue 
 end
 }
--- *********************************************************
-#testInit {
-do
-   F^var := F1^var;
-   F^initialiser := F1^initialiser;
-end
-}
--- *********************************************************
-
 
 -- arguments appel de sous-programme
 ARGS -> #params #gen;
@@ -1979,8 +1820,13 @@ do
   ARGS^code := "";
 end
 }
-
-ARGS -> E #params1 #testInit ARGSX #params2 #gen;
+ 
+ARGS -> #lire_resultat E #params1 ARGSX #params2 #gen;
+#lire_resultat { 
+do
+   E^lire_resultat := true;
+end
+}
 #params1 {
 local
    par : PARAMETRES;
@@ -2000,16 +1846,6 @@ do
   ARGS^code := ARGS^machine.genComment("empilement des parametres") + ARGSX^code + ARGS^machine.genComment("parametre de sous-programme")+ E^code + ARGS^machine.genComment("charger le parametre ?");
 end
 }
--- *********************************************************
-#testInit {
-do
-   if ~E^initialiser then
-        error (B_50, " parametre non initialise");
-   end
-end
-}
--- *********************************************************
-
 
 ARGSX ->  #params #gen;
 #params {
@@ -2023,7 +1859,12 @@ do
 end
 }
 
-ARGSX -> virg E #params1 #testInit ARGSX #params2 #gen;
+ARGSX -> virg #lire_resultat E #params1 ARGSX #params2 #gen;
+#lire_resultat{
+do
+  E^lire_resultat := true;
+end
+}
 #params1 {
 local 
     par : PARAMETRES; 
@@ -2042,13 +1883,6 @@ end
 do
   ARGSX^code := ARGSX1^code + ARGSX^machine.genComment("parametre de sous-programme")+E^code + ARGSX^machine.genComment("charger le parametre ?");
   -- ARGSX^code := ARGSX^machine.genComment("parametre de sous-programme")+E^code + ARGSX^machine.genComment("charger le parametre ?") + ARGSX1^code; 
-end
-}
-#testInit {
-do
-   if ~E^initialiser then
-        error (B_50, " parametre non initialise");
-  end
 end
 }
 
