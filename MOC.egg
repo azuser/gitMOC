@@ -560,7 +560,6 @@ end
 
 -- declaration de variable locale avec ou sans init
 INST ->  TYPE ident #tds #adresse #lire_resultat #code_gauche AFFX pv  #verifCompatibilite #isReturn #gen #setInit;
-INST ->  TYPE ident #tds #adresse #code_gauche AFFX pv  #verifCompatibilite #isReturn #gen #setInit ;
 global
   i : INFO;
   adresse : INTEGER;
