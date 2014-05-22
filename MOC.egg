@@ -32,6 +32,7 @@ syn est_adresse : BOOLEAN for F, T, TX, A, E, RX, R, AX;--, T, F;
 inh hest_adresse : BOOLEAN for AFFX, TX, RX, AX;
 syn adresse : Emplacement for F, TX, T, A, E, RX, R, AX;
 inh hadresse : Emplacement for AFFX, TX, RX, AX;
+inh lire_resultat : BOOLEAN for E, AFFX; -- indique si AFFX doit generer le code pour lire le terme de gauche
 -- initialisation  
    
 -- la table de symboles
@@ -558,6 +559,7 @@ end
 }
 
 -- declaration de variable locale avec ou sans init
+INST ->  TYPE ident #tds #adresse #lire_resultat #code_gauche AFFX pv  #verifCompatibilite #isReturn #gen #setInit;
 INST ->  TYPE ident #tds #adresse #code_gauche AFFX pv  #verifCompatibilite #isReturn #gen #setInit ;
 global
   i : INFO;
@@ -575,6 +577,11 @@ do
     INST^tds.inserer(ident^txt, i);
   end 
   INST^stds := INST^tds;
+end
+}
+#lire_resultat {
+do
+  AFFX^lire_resultat := false;
 end
 }
 #adresse {
@@ -622,19 +629,20 @@ end
 local
     leCode : STRING;
 do
-    INST^code := AFFX^code + INST^machine.genComment("declaration => pop") + INST^machine.genFree(TYPE^type.getTaille()) + INST^machine.genComment("fin de declaration de "+ident^txt);
-end
-}
+	INST^code := AFFX^code  + INST^machine.genComment("fin de declaration de "+ident^txt);
 
 -- instruction expression (affectation et appel de procedure)
-INST -> E pv #adresse #stds #isReturn #gen ;
+INST -> #lire_resultat E pv #adresse #stds #isReturn #gen ;
 #gen {
 do
-    -- consommer la valeur si elle existe
-    INST^code := E^code + INST^machine.genComment("valeur inutile")+INST^machine.genFree(E^type.getTaille());
+    INST^code :=  E^code;
 end
 }
-
+#lire_resultat {
+do
+  E^lire_resultat := false;
+end
+}
 #adresse {
 do
   INST^adr := INST^hadr;
@@ -685,7 +693,12 @@ end
 }
 
 -- conditionnelle
-INST ->   si paro E parf #tds #passeTypeRet BLOC SIX #adresse #stds #isReturn #gen;
+INST ->   si paro #lire_resultat E parf #tds #passeTypeRet BLOC SIX #adresse #stds #isReturn #gen;
+#lire_resultat{
+do
+  E^lire_resultat := true;
+end
+}
 #passeTypeRet{
 do
    BLOC^typeRet := INST^typeRet;
@@ -754,7 +767,12 @@ end
 }
 
 -- retour de fonction
-INST ->  retour  E pv #adresse #tds #verifReturn #isReturn #gen ;
+INST ->  retour #lire_resultat E pv #adresse #tds #verifReturn #isReturn #gen ;
+#lire_resultat{
+do
+  E^lire_resultat := true;
+end
+}
 #adresse {
 do
   INST^adr := INST^hadr;
@@ -960,7 +978,11 @@ do
         error(Interne_adresse, "adresse d'affectation inexistante 1");
      end
    end
-   AFFX^code := leCode + code_valeur_gauche;
+   if AFFX^lire_resultat then
+      AFFX^code := leCode + code_valeur_gauche;
+   else
+      AFFX^code := leCode;
+   end
 end
 }
 -- ******************************************************************
@@ -996,8 +1018,8 @@ do
     
     -- recuperer l'adresse du terme de gauche
     -- laisser en sommet de pile la valeur du terme de gauche
-    leCode := AFFX^machine.genComment("pas d'affectation : code de l'expression");
-    
+    leCode := AFFX^machine.genComment("pas d'affectation : code de l'expression") + AFFX^code_gauche;
+ 
     empl_gauche := AFFX^hadresse;
     if empl_gauche /= null then
      -- empl_gauche est l'adresse du terme gauche
@@ -1005,13 +1027,17 @@ do
     else
         if AFFX^hest_adresse then
             -- il y a l'adresse de l'expression en sommet de pile
-            leCode := leCode + AFFX^code_gauche + AFFX^machine.genReadIndirectMem(AFFX^htype.getTaille());   
+	   code_valeur_gauche := AFFX^machine.genReadMem(empl_gauche, AFFX^htype.getTaille());            
         else
-            -- le code correspond a une constante ou a un appel de procedure : transmettre
-            leCode := leCode + AFFX^code_gauche;
+            -- le code c a une constante ou a un appel de procedure : transmettre
+           code_valeur_gauche := ""; 
         end
     end
-    AFFX^code := leCode;
+     if AFFX^lire_resultat then
+       AFFX^code := leCode + code_valeur_gauche;
+     else
+       AFFX^code := leCode;
+     end
 end
 }
 
@@ -1732,7 +1758,12 @@ end
 
  
 -- expression parenthesee
-F ->  paro E parf #getType #estAffectable #adresse #gen #testInit ;
+F ->  paro #lire_resultat E parf #getType #estAffectable #adresse #gen #getInit;
+#lire_resultat { -- ??? pas sur
+do
+   E^lire_resultat := false;
+end
+}
 #getType {
 do 
    F^type := E^type;
@@ -1878,7 +1909,7 @@ do
      match iTemp with INFOVAR then
         i := iTemp;
         type := i.getType();
-        F^code := F^machine.genComment("acces a "+ident^txt);
+        F^code := F^machine.genComment("acces a "+ident^txt);--genLire(ident^txt, type.getTaille(), i.getEmpl());
         F^adresse := i.getEmpl();
         F^est_adresse := false;
     else
@@ -1977,7 +2008,12 @@ do
 end
 }
 
-ARGS -> E #params1 #testInit ARGSX #params2 #gen;
+ARGS -> #lire_resultat E #params1 #testInit ARGSX #params2 #gen;
+#lire_resultat { 
+do
+   E^lire_resultat := true;
+end
+}
 #params1 {
 local
    par : PARAMETRES;
@@ -2020,7 +2056,12 @@ do
 end
 }
 
-ARGSX -> virg E #params1 #testInit ARGSX #params2 #gen;
+ARGSX -> virg #lire_resultat E #params1 #testInit ARGSX #params2 #gen;
+#lire_resultat{
+do
+  E^lire_resultat := true;
+end
+}
 #params1 {
 local 
     par : PARAMETRES; 
