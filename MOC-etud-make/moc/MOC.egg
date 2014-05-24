@@ -560,7 +560,6 @@ end
 
 -- declaration de variable locale avec ou sans init
 INST ->  TYPE ident #tds #adresse #lire_resultat #code_gauche AFFX pv  #verifCompatibilite #isReturn #gen #setInit;
-INST ->  TYPE ident #tds #adresse #code_gauche AFFX pv  #verifCompatibilite #isReturn #gen #setInit ;
 global
   i : INFO;
   adresse : INTEGER;
@@ -630,7 +629,8 @@ local
     leCode : STRING;
 do
 	INST^code := AFFX^code  + INST^machine.genComment("fin de declaration de "+ident^txt);
-
+end 
+}
 -- instruction expression (affectation et appel de procedure)
 INST -> #lire_resultat E pv #adresse #stds #isReturn #gen ;
 #gen {
@@ -1758,7 +1758,7 @@ end
 
  
 -- expression parenthesee
-F ->  paro #lire_resultat E parf #getType #estAffectable #adresse #gen #getInit;
+F ->  paro #lire_resultat E parf #getType #estAffectable #adresse #gen #testInit;
 #lire_resultat { -- ??? pas sur
 do
    E^lire_resultat := false;

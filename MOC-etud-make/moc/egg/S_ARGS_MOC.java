@@ -43,50 +43,51 @@ if  (att_eval)      action_gen_64();
   private void regle65() throws Exception {
 
     //declaration
-    S_E_MOC x_2 = new S_E_MOC(scanner,att_eval) ;
-    S_ARGSX_MOC x_5 = new S_ARGSX_MOC(scanner,att_eval) ;
+    S_E_MOC x_3 = new S_E_MOC(scanner,att_eval) ;
+    S_ARGSX_MOC x_6 = new S_ARGSX_MOC(scanner,att_eval) ;
     //appel
-if  (att_eval)      action_auto_inh_65(x_2, x_5);
-    x_2.analyser() ;
-if  (att_eval)      action_params1_65(x_2, x_5);
-if  (att_eval)      action_testInit_65(x_2, x_5);
-    x_5.analyser() ;
-if  (att_eval)      action_params2_65(x_2, x_5);
-if  (att_eval)      action_gen_65(x_2, x_5);
+if  (att_eval)      action_auto_inh_65(x_3, x_6);
+if  (att_eval)      action_lire_resultat_65(x_3, x_6);
+    x_3.analyser() ;
+if  (att_eval)      action_params1_65(x_3, x_6);
+if  (att_eval)      action_testInit_65(x_3, x_6);
+    x_6.analyser() ;
+if  (att_eval)      action_params2_65(x_3, x_6);
+if  (att_eval)      action_gen_65(x_3, x_6);
   }
-private void action_auto_inh_65(S_E_MOC x_2, S_ARGSX_MOC x_5) throws Exception {
+private void action_auto_inh_65(S_E_MOC x_3, S_ARGSX_MOC x_6) throws Exception {
 try {
 // instructions
-x_2.att_tInt=this.att_tInt;
-x_5.att_tInt=this.att_tInt;
-x_2.att_tChar=this.att_tChar;
-x_5.att_tChar=this.att_tChar;
-x_2.att_tPointeurNull=this.att_tPointeurNull;
-x_5.att_tPointeurNull=this.att_tPointeurNull;
-x_2.att_tVoid=this.att_tVoid;
-x_5.att_tVoid=this.att_tVoid;
-x_2.att_tString=this.att_tString;
-x_5.att_tString=this.att_tString;
-x_2.att_regLB=this.att_regLB;
-x_5.att_regLB=this.att_regLB;
-x_2.att_tds=this.att_tds;
-x_5.att_tds=this.att_tds;
-x_2.att_tds_fonction=this.att_tds_fonction;
-x_5.att_tds_fonction=this.att_tds_fonction;
-x_2.att_machine=this.att_machine;
-x_5.att_machine=this.att_machine;
-}catch(RuntimeException e) {       att_scanner._interrompre(IProblem.Internal,att_scanner.getBeginLine(),ICoreMessages.id_EGG_runtime_error, CoreMessages.EGG_runtime_error,new Object[] { "MOC", "#auto_inh","ARGS -> E #params1 #testInit ARGSX #params2 #gen ;"});
+x_3.att_tInt=this.att_tInt;
+x_6.att_tInt=this.att_tInt;
+x_3.att_tChar=this.att_tChar;
+x_6.att_tChar=this.att_tChar;
+x_3.att_tPointeurNull=this.att_tPointeurNull;
+x_6.att_tPointeurNull=this.att_tPointeurNull;
+x_3.att_tVoid=this.att_tVoid;
+x_6.att_tVoid=this.att_tVoid;
+x_3.att_tString=this.att_tString;
+x_6.att_tString=this.att_tString;
+x_3.att_regLB=this.att_regLB;
+x_6.att_regLB=this.att_regLB;
+x_3.att_tds=this.att_tds;
+x_6.att_tds=this.att_tds;
+x_3.att_tds_fonction=this.att_tds_fonction;
+x_6.att_tds_fonction=this.att_tds_fonction;
+x_3.att_machine=this.att_machine;
+x_6.att_machine=this.att_machine;
+}catch(RuntimeException e) {       att_scanner._interrompre(IProblem.Internal,att_scanner.getBeginLine(),ICoreMessages.id_EGG_runtime_error, CoreMessages.EGG_runtime_error,new Object[] { "MOC", "#auto_inh","ARGS -> #lire_resultat E #params1 #testInit ARGSX #params2 #gen ;"});
 }
   }
-private void action_params1_65(S_E_MOC x_2, S_ARGSX_MOC x_5) throws Exception {
+private void action_params1_65(S_E_MOC x_3, S_ARGSX_MOC x_6) throws Exception {
 try {
 // locales
 PARAMETRES loc_par;
 // instructions
 loc_par=this.att_hparams;
-loc_par.inserer(x_2.att_type);
-x_5.att_hparams=loc_par;
-}catch(RuntimeException e) {       att_scanner._interrompre(IProblem.Internal,att_scanner.getBeginLine(),ICoreMessages.id_EGG_runtime_error, CoreMessages.EGG_runtime_error,new Object[] { "MOC", "#params1","ARGS -> E #params1 #testInit ARGSX #params2 #gen ;"});
+loc_par.inserer(x_3.att_type);
+x_6.att_hparams=loc_par;
+}catch(RuntimeException e) {       att_scanner._interrompre(IProblem.Internal,att_scanner.getBeginLine(),ICoreMessages.id_EGG_runtime_error, CoreMessages.EGG_runtime_error,new Object[] { "MOC", "#params1","ARGS -> #lire_resultat E #params1 #testInit ARGSX #params2 #gen ;"});
 }
   }
 private void action_params_64() throws Exception {
@@ -96,18 +97,25 @@ this.att_params=this.att_hparams;
 }catch(RuntimeException e) {       att_scanner._interrompre(IProblem.Internal,att_scanner.getBeginLine(),ICoreMessages.id_EGG_runtime_error, CoreMessages.EGG_runtime_error,new Object[] { "MOC", "#params","ARGS -> #params #gen ;"});
 }
   }
-private void action_params2_65(S_E_MOC x_2, S_ARGSX_MOC x_5) throws Exception {
+private void action_params2_65(S_E_MOC x_3, S_ARGSX_MOC x_6) throws Exception {
 try {
 // instructions
-this.att_params=x_5.att_params;
-}catch(RuntimeException e) {       att_scanner._interrompre(IProblem.Internal,att_scanner.getBeginLine(),ICoreMessages.id_EGG_runtime_error, CoreMessages.EGG_runtime_error,new Object[] { "MOC", "#params2","ARGS -> E #params1 #testInit ARGSX #params2 #gen ;"});
+this.att_params=x_6.att_params;
+}catch(RuntimeException e) {       att_scanner._interrompre(IProblem.Internal,att_scanner.getBeginLine(),ICoreMessages.id_EGG_runtime_error, CoreMessages.EGG_runtime_error,new Object[] { "MOC", "#params2","ARGS -> #lire_resultat E #params1 #testInit ARGSX #params2 #gen ;"});
 }
   }
-private void action_gen_65(S_E_MOC x_2, S_ARGSX_MOC x_5) throws Exception {
+private void action_lire_resultat_65(S_E_MOC x_3, S_ARGSX_MOC x_6) throws Exception {
 try {
 // instructions
-this.att_code=this.att_machine.genComment("empilement des parametres")+x_5.att_code+this.att_machine.genComment("parametre de sous-programme")+x_2.att_code+this.att_machine.genComment("charger le parametre ?");
-}catch(RuntimeException e) {       att_scanner._interrompre(IProblem.Internal,att_scanner.getBeginLine(),ICoreMessages.id_EGG_runtime_error, CoreMessages.EGG_runtime_error,new Object[] { "MOC", "#gen","ARGS -> E #params1 #testInit ARGSX #params2 #gen ;"});
+x_3.att_lire_resultat=true;
+}catch(RuntimeException e) {       att_scanner._interrompre(IProblem.Internal,att_scanner.getBeginLine(),ICoreMessages.id_EGG_runtime_error, CoreMessages.EGG_runtime_error,new Object[] { "MOC", "#lire_resultat","ARGS -> #lire_resultat E #params1 #testInit ARGSX #params2 #gen ;"});
+}
+  }
+private void action_gen_65(S_E_MOC x_3, S_ARGSX_MOC x_6) throws Exception {
+try {
+// instructions
+this.att_code=this.att_machine.genComment("empilement des parametres")+x_6.att_code+this.att_machine.genComment("parametre de sous-programme")+x_3.att_code+this.att_machine.genComment("charger le parametre ?");
+}catch(RuntimeException e) {       att_scanner._interrompre(IProblem.Internal,att_scanner.getBeginLine(),ICoreMessages.id_EGG_runtime_error, CoreMessages.EGG_runtime_error,new Object[] { "MOC", "#gen","ARGS -> #lire_resultat E #params1 #testInit ARGSX #params2 #gen ;"});
 }
   }
 private void action_gen_64() throws Exception {
@@ -117,15 +125,15 @@ this.att_code="";
 }catch(RuntimeException e) {       att_scanner._interrompre(IProblem.Internal,att_scanner.getBeginLine(),ICoreMessages.id_EGG_runtime_error, CoreMessages.EGG_runtime_error,new Object[] { "MOC", "#gen","ARGS -> #params #gen ;"});
 }
   }
-private void action_testInit_65(S_E_MOC x_2, S_ARGSX_MOC x_5) throws Exception {
+private void action_testInit_65(S_E_MOC x_3, S_ARGSX_MOC x_6) throws Exception {
 try {
 // instructions
-if (!(x_2.att_initialiser)){
+if (!(x_3.att_initialiser)){
 att_scanner._interrompre(IProblem.Semantic, att_scanner.getBeginLine(), IMOCMessages.id_B_50, MOCMessages.B_50,new Object[]{""+" parametre non initialise"});
 
 }
 
-}catch(RuntimeException e) {       att_scanner._interrompre(IProblem.Internal,att_scanner.getBeginLine(),ICoreMessages.id_EGG_runtime_error, CoreMessages.EGG_runtime_error,new Object[] { "MOC", "#testInit","ARGS -> E #params1 #testInit ARGSX #params2 #gen ;"});
+}catch(RuntimeException e) {       att_scanner._interrompre(IProblem.Internal,att_scanner.getBeginLine(),ICoreMessages.id_EGG_runtime_error, CoreMessages.EGG_runtime_error,new Object[] { "MOC", "#testInit","ARGS -> #lire_resultat E #params1 #testInit ARGSX #params2 #gen ;"});
 }
   }
   public void analyser () throws Exception {

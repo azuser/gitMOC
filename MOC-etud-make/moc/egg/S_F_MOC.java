@@ -119,18 +119,19 @@ if  (att_eval)      action_gen_58();
 
     //declaration
     T_MOC x_2 = new T_MOC(scanner ) ;
-    S_E_MOC x_3 = new S_E_MOC(scanner,att_eval) ;
-    T_MOC x_4 = new T_MOC(scanner ) ;
+    S_E_MOC x_4 = new S_E_MOC(scanner,att_eval) ;
+    T_MOC x_5 = new T_MOC(scanner ) ;
     //appel
-if  (att_eval)      action_auto_inh_59(x_3);
+if  (att_eval)      action_auto_inh_59(x_4);
     x_2.analyser(LEX_MOC.token_paro);
-    x_3.analyser() ;
-    x_4.analyser(LEX_MOC.token_parf);
-if  (att_eval)      action_getType_59(x_3);
-if  (att_eval)      action_estAffectable_59(x_3);
-if  (att_eval)      action_adresse_59(x_3);
-if  (att_eval)      action_gen_59(x_3);
-if  (att_eval)      action_testInit_59(x_3);
+if  (att_eval)      action_lire_resultat_59(x_4);
+    x_4.analyser() ;
+    x_5.analyser(LEX_MOC.token_parf);
+if  (att_eval)      action_getType_59(x_4);
+if  (att_eval)      action_estAffectable_59(x_4);
+if  (att_eval)      action_adresse_59(x_4);
+if  (att_eval)      action_gen_59(x_4);
+if  (att_eval)      action_testInit_59(x_4);
   }
   private void regle54() throws Exception {
 
@@ -200,12 +201,12 @@ this.att_var=null;
 }catch(RuntimeException e) {       att_scanner._interrompre(IProblem.Internal,att_scanner.getBeginLine(),ICoreMessages.id_EGG_runtime_error, CoreMessages.EGG_runtime_error,new Object[] { "MOC", "#testInit","F -> null #getType #estAffectable #adresse #testInit #gen ;"});
 }
   }
-private void action_testInit_59(S_E_MOC x_3) throws Exception {
+private void action_testInit_59(S_E_MOC x_4) throws Exception {
 try {
 // instructions
-this.att_initialiser=x_3.att_initialiser;
+this.att_initialiser=x_4.att_initialiser;
 this.att_var=null;
-}catch(RuntimeException e) {       att_scanner._interrompre(IProblem.Internal,att_scanner.getBeginLine(),ICoreMessages.id_EGG_runtime_error, CoreMessages.EGG_runtime_error,new Object[] { "MOC", "#testInit","F -> paro E parf #getType #estAffectable #adresse #gen #testInit ;"});
+}catch(RuntimeException e) {       att_scanner._interrompre(IProblem.Internal,att_scanner.getBeginLine(),ICoreMessages.id_EGG_runtime_error, CoreMessages.EGG_runtime_error,new Object[] { "MOC", "#testInit","F -> paro #lire_resultat E parf #getType #estAffectable #adresse #gen #testInit ;"});
 }
   }
 private void action_verifCast_60(S_TYPE_MOC x_3, S_F_MOC x_5) throws Exception {
@@ -248,11 +249,11 @@ att_scanner._interrompre(IProblem.Semantic, att_scanner.getBeginLine(), IMOCMess
 }catch(RuntimeException e) {       att_scanner._interrompre(IProblem.Internal,att_scanner.getBeginLine(),ICoreMessages.id_EGG_runtime_error, CoreMessages.EGG_runtime_error,new Object[] { "MOC", "#gen","F -> ident #gen #getType #testInit #estAffectable ;"});
 }
   }
-private void action_gen_59(S_E_MOC x_3) throws Exception {
+private void action_gen_59(S_E_MOC x_4) throws Exception {
 try {
 // instructions
-this.att_code=x_3.att_code;
-}catch(RuntimeException e) {       att_scanner._interrompre(IProblem.Internal,att_scanner.getBeginLine(),ICoreMessages.id_EGG_runtime_error, CoreMessages.EGG_runtime_error,new Object[] { "MOC", "#gen","F -> paro E parf #getType #estAffectable #adresse #gen #testInit ;"});
+this.att_code=x_4.att_code;
+}catch(RuntimeException e) {       att_scanner._interrompre(IProblem.Internal,att_scanner.getBeginLine(),ICoreMessages.id_EGG_runtime_error, CoreMessages.EGG_runtime_error,new Object[] { "MOC", "#gen","F -> paro #lire_resultat E parf #getType #estAffectable #adresse #gen #testInit ;"});
 }
   }
 private void action_gen_61(T_MOC x_2, S_ARGS_MOC x_5) throws Exception {
@@ -294,6 +295,13 @@ try {
 // instructions
 this.att_code=this.att_machine.genComment("pointeur null");
 }catch(RuntimeException e) {       att_scanner._interrompre(IProblem.Internal,att_scanner.getBeginLine(),ICoreMessages.id_EGG_runtime_error, CoreMessages.EGG_runtime_error,new Object[] { "MOC", "#gen","F -> null #getType #estAffectable #adresse #testInit #gen ;"});
+}
+  }
+private void action_lire_resultat_59(S_E_MOC x_4) throws Exception {
+try {
+// instructions
+x_4.att_lire_resultat=false;
+}catch(RuntimeException e) {       att_scanner._interrompre(IProblem.Internal,att_scanner.getBeginLine(),ICoreMessages.id_EGG_runtime_error, CoreMessages.EGG_runtime_error,new Object[] { "MOC", "#lire_resultat","F -> paro #lire_resultat E parf #getType #estAffectable #adresse #gen #testInit ;"});
 }
   }
 private void action_auto_inh_61(T_MOC x_2, S_ARGS_MOC x_5) throws Exception {
@@ -552,11 +560,11 @@ this.att_adresse=null;
 }catch(RuntimeException e) {       att_scanner._interrompre(IProblem.Internal,att_scanner.getBeginLine(),ICoreMessages.id_EGG_runtime_error, CoreMessages.EGG_runtime_error,new Object[] { "MOC", "#adresse","F -> OPUN F1 #verifType #getType #testInit #estAffectable #adresse #gen ;"});
 }
   }
-private void action_getType_59(S_E_MOC x_3) throws Exception {
+private void action_getType_59(S_E_MOC x_4) throws Exception {
 try {
 // instructions
-this.att_type=x_3.att_type;
-}catch(RuntimeException e) {       att_scanner._interrompre(IProblem.Internal,att_scanner.getBeginLine(),ICoreMessages.id_EGG_runtime_error, CoreMessages.EGG_runtime_error,new Object[] { "MOC", "#getType","F -> paro E parf #getType #estAffectable #adresse #gen #testInit ;"});
+this.att_type=x_4.att_type;
+}catch(RuntimeException e) {       att_scanner._interrompre(IProblem.Internal,att_scanner.getBeginLine(),ICoreMessages.id_EGG_runtime_error, CoreMessages.EGG_runtime_error,new Object[] { "MOC", "#getType","F -> paro #lire_resultat E parf #getType #estAffectable #adresse #gen #testInit ;"});
 }
   }
 private void action_getType_58() throws Exception {
@@ -573,19 +581,19 @@ this.att_type=this.att_tInt;
 }catch(RuntimeException e) {       att_scanner._interrompre(IProblem.Internal,att_scanner.getBeginLine(),ICoreMessages.id_EGG_runtime_error, CoreMessages.EGG_runtime_error,new Object[] { "MOC", "#getType","F -> entier #testInit #getType #estAffectable #gen ;"});
 }
   }
+private void action_adresse_59(S_E_MOC x_4) throws Exception {
+try {
+// instructions
+this.att_est_adresse=x_4.att_est_adresse;
+this.att_adresse=x_4.att_adresse;
+}catch(RuntimeException e) {       att_scanner._interrompre(IProblem.Internal,att_scanner.getBeginLine(),ICoreMessages.id_EGG_runtime_error, CoreMessages.EGG_runtime_error,new Object[] { "MOC", "#adresse","F -> paro #lire_resultat E parf #getType #estAffectable #adresse #gen #testInit ;"});
+}
+  }
 private void action_getType_53(T_MOC x_2) throws Exception {
 try {
 // instructions
 this.att_type=this.att_tChar;
 }catch(RuntimeException e) {       att_scanner._interrompre(IProblem.Internal,att_scanner.getBeginLine(),ICoreMessages.id_EGG_runtime_error, CoreMessages.EGG_runtime_error,new Object[] { "MOC", "#getType","F -> caractere #testInit #getType #estAffectable #gen ;"});
-}
-  }
-private void action_adresse_59(S_E_MOC x_3) throws Exception {
-try {
-// instructions
-this.att_est_adresse=x_3.att_est_adresse;
-this.att_adresse=x_3.att_adresse;
-}catch(RuntimeException e) {       att_scanner._interrompre(IProblem.Internal,att_scanner.getBeginLine(),ICoreMessages.id_EGG_runtime_error, CoreMessages.EGG_runtime_error,new Object[] { "MOC", "#adresse","F -> paro E parf #getType #estAffectable #adresse #gen #testInit ;"});
 }
   }
 private void action_getType_54(S_OPUN_MOC x_2, S_F_MOC x_3) throws Exception {
@@ -625,19 +633,19 @@ this.att_affectable=false;
 }catch(RuntimeException e) {       att_scanner._interrompre(IProblem.Internal,att_scanner.getBeginLine(),ICoreMessages.id_EGG_runtime_error, CoreMessages.EGG_runtime_error,new Object[] { "MOC", "#estAffectable","F -> OPUN F1 #verifType #getType #testInit #estAffectable #adresse #gen ;"});
 }
   }
-private void action_auto_inh_59(S_E_MOC x_3) throws Exception {
+private void action_auto_inh_59(S_E_MOC x_4) throws Exception {
 try {
 // instructions
-x_3.att_tInt=this.att_tInt;
-x_3.att_tChar=this.att_tChar;
-x_3.att_tPointeurNull=this.att_tPointeurNull;
-x_3.att_tVoid=this.att_tVoid;
-x_3.att_tString=this.att_tString;
-x_3.att_regLB=this.att_regLB;
-x_3.att_tds=this.att_tds;
-x_3.att_tds_fonction=this.att_tds_fonction;
-x_3.att_machine=this.att_machine;
-}catch(RuntimeException e) {       att_scanner._interrompre(IProblem.Internal,att_scanner.getBeginLine(),ICoreMessages.id_EGG_runtime_error, CoreMessages.EGG_runtime_error,new Object[] { "MOC", "#auto_inh","F -> paro E parf #getType #estAffectable #adresse #gen #testInit ;"});
+x_4.att_tInt=this.att_tInt;
+x_4.att_tChar=this.att_tChar;
+x_4.att_tPointeurNull=this.att_tPointeurNull;
+x_4.att_tVoid=this.att_tVoid;
+x_4.att_tString=this.att_tString;
+x_4.att_regLB=this.att_regLB;
+x_4.att_tds=this.att_tds;
+x_4.att_tds_fonction=this.att_tds_fonction;
+x_4.att_machine=this.att_machine;
+}catch(RuntimeException e) {       att_scanner._interrompre(IProblem.Internal,att_scanner.getBeginLine(),ICoreMessages.id_EGG_runtime_error, CoreMessages.EGG_runtime_error,new Object[] { "MOC", "#auto_inh","F -> paro #lire_resultat E parf #getType #estAffectable #adresse #gen #testInit ;"});
 }
   }
 private void action_estAffectable_53(T_MOC x_2) throws Exception {
@@ -647,11 +655,11 @@ this.att_affectable=false;
 }catch(RuntimeException e) {       att_scanner._interrompre(IProblem.Internal,att_scanner.getBeginLine(),ICoreMessages.id_EGG_runtime_error, CoreMessages.EGG_runtime_error,new Object[] { "MOC", "#estAffectable","F -> caractere #testInit #getType #estAffectable #gen ;"});
 }
   }
-private void action_estAffectable_59(S_E_MOC x_3) throws Exception {
+private void action_estAffectable_59(S_E_MOC x_4) throws Exception {
 try {
 // instructions
-this.att_affectable=x_3.att_affectable;
-}catch(RuntimeException e) {       att_scanner._interrompre(IProblem.Internal,att_scanner.getBeginLine(),ICoreMessages.id_EGG_runtime_error, CoreMessages.EGG_runtime_error,new Object[] { "MOC", "#estAffectable","F -> paro E parf #getType #estAffectable #adresse #gen #testInit ;"});
+this.att_affectable=x_4.att_affectable;
+}catch(RuntimeException e) {       att_scanner._interrompre(IProblem.Internal,att_scanner.getBeginLine(),ICoreMessages.id_EGG_runtime_error, CoreMessages.EGG_runtime_error,new Object[] { "MOC", "#estAffectable","F -> paro #lire_resultat E parf #getType #estAffectable #adresse #gen #testInit ;"});
 }
   }
 private void action_testInit_53(T_MOC x_2) throws Exception {

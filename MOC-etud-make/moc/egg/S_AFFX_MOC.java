@@ -36,6 +36,7 @@ int [] sync= new int[0];
   DTYPE att_tChar;
   DTYPE att_htype;
   TDS att_tds;
+  boolean att_lire_resultat;
   LEX_MOC att_scanner;
   DTYPE att_tPointeurNull;
   DTYPE glob_28_t;
@@ -157,7 +158,12 @@ att_scanner._interrompre(IProblem.Semantic, att_scanner.getBeginLine(), IMOCMess
 
 }
 }
+if (this.att_lire_resultat){
 this.att_code=loc_leCode+loc_code_valeur_gauche;
+}
+else {
+this.att_code=loc_leCode;
+}
 }catch(RuntimeException e) {       att_scanner._interrompre(IProblem.Internal,att_scanner.getBeginLine(),ICoreMessages.id_EGG_runtime_error, CoreMessages.EGG_runtime_error,new Object[] { "MOC", "#gen","AFFX -> affect A #getType #estVide #gen #testInit ;"});
 }
   }
@@ -169,20 +175,25 @@ Emplacement loc_empl_gauche;
 String loc_code_valeur_gauche;
 // instructions
 this.att_estAffectation=false;
-loc_leCode=this.att_machine.genComment("pas d'affectation : code de l'expression");
+loc_leCode=this.att_machine.genComment("pas d'affectation : code de l'expression")+this.att_code_gauche;
 loc_empl_gauche=this.att_hadresse;
 if (loc_empl_gauche!=null){
 loc_leCode=loc_leCode+this.att_code_gauche+this.att_machine.genReadMem(loc_empl_gauche, this.att_htype.getTaille());
 }
 else {
 if (this.att_hest_adresse){
-loc_leCode=loc_leCode+this.att_code_gauche+this.att_machine.genReadIndirectMem(this.att_htype.getTaille());
+loc_code_valeur_gauche=this.att_machine.genReadMem(loc_empl_gauche, this.att_htype.getTaille());
 }
 else {
-loc_leCode=loc_leCode+this.att_code_gauche;
+loc_code_valeur_gauche="";
 }
 }
+if (this.att_lire_resultat){
+this.att_code=loc_leCode+loc_code_valeur_gauche;
+}
+else {
 this.att_code=loc_leCode;
+}
 }catch(RuntimeException e) {       att_scanner._interrompre(IProblem.Internal,att_scanner.getBeginLine(),ICoreMessages.id_EGG_runtime_error, CoreMessages.EGG_runtime_error,new Object[] { "MOC", "#gen","AFFX -> #getType #estVide #gen ;"});
 }
   }
