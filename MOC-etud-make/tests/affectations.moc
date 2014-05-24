@@ -33,5 +33,7 @@ int main() {
   int b;
   a = f203()/203;
   b = a *4;
+  a = NULL;
+  b = a *4;
   return 215;
 }

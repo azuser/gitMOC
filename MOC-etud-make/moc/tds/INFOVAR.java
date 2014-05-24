@@ -53,10 +53,8 @@ public boolean  getInitialiser (){
 
 
 
-	public void setInitialiser (){
-
-		this.initialiser = true;
-
+	public void setInitialiser (boolean t){
+		this.initialiser = t;
 	}
 
 	@Override

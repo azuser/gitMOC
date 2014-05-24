@@ -20,7 +20,7 @@ inh tString : DTYPE for PARFS, PARFSX, STYPE, PARF, TYPE, ENTITES, FONCTION, BLO
 inh regLB : Register for PARFS, PARFSX, TYPE, PARF,  STYPE, ENTITES, FONCTION, BLOC, INSTS, INST, SIX, AFFX, E, A, AX, R, RX, T, TX, F, ARGS, ARGSX;
 -- test initialisation 
 syn initialiser : BOOLEAN for F, A, R, T, RX, TX, AX, E;   -- ***************************************
-syn var         : INFOVAR for F, A, R, T;   -- ***************************************
+syn var         : INFOVAR for F, A, R, T, AFFX;   -- ***************************************
 --attributes  
 syn type  : DTYPE for TYPE, REFS, STYPE, F, E, A, T, R, AFFX;
 inh htype : DTYPE for REFS, AFFX;
@@ -393,7 +393,7 @@ local
 do
   i := new INFOVAR(TYPE^type, new Emplacement(PARF^hadr, PARF^regLB));
   -- je considere que les parametres sont initialise : la verification sera fait lors de l'execution 
-  i.setInitialiser();
+  i.setInitialiser(true);
   p := PARF^hparams;
   p.inserer(TYPE^type);
   PARF^params := p;
@@ -496,8 +496,8 @@ local
     tailleBloc : INTEGER;
 do
    tailleBloc := INSTS^adr - BLOC^hadr;
-   write "; tds:\n" + t;
-   write "; taille des locales = " + tailleBloc+ "\n";
+   --write "; tds:\n" + t;
+  -- write "; taille des locales = " + tailleBloc+ "\n";
    -- Le code du bloc est celui de ses instructions
    -- plus le code pour liberer la place occupee
    -- par les variables locales (POP (0) taille)
@@ -601,7 +601,13 @@ end
 do
    if  ~AFFX^vide then
         match i with INFOVAR then
-                i.setInitialiser();
+		if AFFX^var /= null then
+		   if AFFX^var.getType() /= INST^tPointeurNull then
+                      i.setInitialiser(true);
+		   end 
+		else 
+                   i.setInitialiser(true);
+		end 	
                 --write("init change ");
         end
    end
@@ -869,8 +875,18 @@ do
         E^initialiser := A^initialiser;
    else
        if A^var /= null then
-        A^var.setInitialiser(); -- la rendre initiliser
-        E^initialiser := true;
+	if (AFFX^var /= null) then 
+	      if AFFX^var.getType() = E^tPointeurNull then
+	         A^var.setInitialiser(false); -- la rendre initiliser
+                 E^initialiser := false;
+	      else 
+	         A^var.setInitialiser(true); -- la rendre initiliser
+                 E^initialiser := true;
+	      end 
+	   else
+	      A^var.setInitialiser(true); -- la rendre initiliser
+              E^initialiser := true;
+	   end 
        else
         error (B_100, " erreur affectation **");
         E^initialiser := false;
@@ -991,12 +1007,18 @@ do
    if ~A^initialiser then
         error(B_55, " cote droit non initialise");
    end
+   AFFX^var := A^var;
 end
 }
 -- ******************************************************************
 
 
-AFFX ->  #getType #estVide #gen ;
+AFFX ->  #getType #estVide #gen #testVar ;
+#testVar {
+do
+   AFFX^var := null;
+end 
+}
 #getType {
 do 
 	AFFX^type := null;
@@ -1752,7 +1774,7 @@ end
 #testInit {
 do
    F^initialiser := true;
-   F^var := null;
+   F^var := new INFOVAR(F^tPointeurNull, null);
 end
 }
 -- *********************************************************
@@ -1923,12 +1945,6 @@ end
 -- *********************************************************
 #testInit {
 do
-        write ("je passe : "+ident^txt+"\n");
-        if i = null then 
-               write("je suis null \n ");
-        else 
-              write("je ne suis pas  null \n ");
-        end 
         F^var := i;
         F^initialiser := i.getInitialiser();
 end

@@ -25,7 +25,7 @@ public class DTYPE {
 
 	public boolean compareTo(DTYPE autre) {
 		if (nom.equals("int")){
-			if (autre.nom.equals("char") || autre.taille != this.taille){
+			if (autre.nom.equals("char") || autre.taille != this.taille || autre instanceof POINTEURNULL){
 				return false;
 			}
 			else {
