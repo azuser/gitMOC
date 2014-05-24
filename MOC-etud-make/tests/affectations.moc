@@ -26,7 +26,7 @@ void fDecl() {
 
 
 int main() {
-  int a = 1;
+  int a;
   fDecl();
   int d4 = fRetour(4);
   int d19 = fRetour(0);

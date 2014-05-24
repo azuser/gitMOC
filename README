@@ -1,3 +1,10 @@
 This projet only contain important files from MOCproject
 
-test test  
+Version actuelle :
+	- la generation de code 
+	- tests d initialisation 
+		-- test variable non initialisee 
+		-- test parametre non initialise 
+		-- test operation contenant un elt non initialise
+
+version fonctionnelle : besoin d etre encore testee   

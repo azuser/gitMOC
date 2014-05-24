@@ -1015,31 +1015,32 @@ local
 do
     -- pas d'affectation : 
     AFFX^estAffectation := false;
-    
+
     -- recuperer l'adresse du terme de gauche
     -- laisser en sommet de pile la valeur du terme de gauche
     leCode := AFFX^machine.genComment("pas d'affectation : code de l'expression") + AFFX^code_gauche;
- 
+
     empl_gauche := AFFX^hadresse;
     if empl_gauche /= null then
      -- empl_gauche est l'adresse du terme gauche
-     leCode := leCode +  AFFX^code_gauche + AFFX^machine.genReadMem(empl_gauche, AFFX^htype.getTaille());
+     code_valeur_gauche := AFFX^machine.genReadMem(empl_gauche, AFFX^htype.getTaille());
     else
         if AFFX^hest_adresse then
             -- il y a l'adresse de l'expression en sommet de pile
-	   code_valeur_gauche := AFFX^machine.genReadMem(empl_gauche, AFFX^htype.getTaille());            
+            code_valeur_gauche := AFFX^machine.genReadIndirectMem(AFFX^htype.getTaille());
         else
-            -- le code c a une constante ou a un appel de procedure : transmettre
-           code_valeur_gauche := ""; 
+            -- le code correspond a une constante ou a un appel de procedure : transmettre
+            code_valeur_gauche := "";
         end
     end
-     if AFFX^lire_resultat then
-       AFFX^code := leCode + code_valeur_gauche;
-     else
-       AFFX^code := leCode;
-     end
+    if AFFX^lire_resultat then
+      AFFX^code := leCode + code_valeur_gauche;
+    else
+      AFFX^code := leCode;
+    end
 end
 }
+
 
 
 -- relation
