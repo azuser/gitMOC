@@ -22,7 +22,7 @@ inh regLB : Register for PARFS, PARFSX, TYPE, PARF,  STYPE, ENTITES, FONCTION, B
 syn initialiser : BOOLEAN for F, A, R, T, RX, TX, AX, E;   -- ***************************************
 syn var         : INFOVAR for F, A, R, T, AFFX;   -- ***************************************
 --attributes  
-syn type  : DTYPE for TYPE, REFS, STYPE, F, E, A, T, R, AFFX;
+syn type  : DTYPE for TYPE, REFS, STYPE, F, E, A, T, R, AFFX, PTYPE;
 inh htype : DTYPE for REFS, AFFX;
 -- affectation 
 syn affectable : BOOLEAN for F, A, R, T, E;
@@ -33,7 +33,8 @@ inh hest_adresse : BOOLEAN for AFFX, TX, RX, AX;
 syn adresse : Emplacement for F, TX, T, A, E, RX, R, AX;
 inh hadresse : Emplacement for AFFX, TX, RX, AX;
 inh lire_resultat : BOOLEAN for E, AFFX; -- indique si AFFX doit generer le code pour lire le terme de gauche
--- initialisation  
+-- verification d instance 
+inh classe  : DTYPE for METHODES, METHODE, BLOC, F, RX, T, TX, R, A, AFFX, AX, E, INST, SIX; 
    
 -- la table de symboles
 inh tds  : TDS for ENTITES, FONCTION, PARFS, PARF, PARFSX, TYPE, REFS, 
@@ -73,8 +74,11 @@ syn code : STRING for ENTITES, FONCTION, BLOC, INSTS, INST, SIX, E, A, AFFX, AX,
 -- operation
 inh hcode : STRING for AX, RX, TX;
 inh code_gauche: STRING for AFFX; -- code du terme a gauche de l'operateur
+-- recuperation de la classe mere 
+modific : STRING for QUAL;
 
---terminaux
+
+------   terminaux
 space separateur is  "[\r\n\t ]+";     
 space comm is  "\/\/[^\n]*\n";
 sugar paro is  "\(";
@@ -114,8 +118,8 @@ term caractere is  "\'[^\']\'";
 term chaine is  "\"[^\"]*\"";
 term ident is  "[a-z][_0-9A-Za-z]*";
 -- --decommenter pour MOC
---term identc is  "[A-Z][_0-9A-Za-z]*";   -- nom de classe
---term chaineo is  "@\"[^\"]*\"";         -- chaine MOC
+term identc is  "[A-Z][_0-9A-Za-z]*";   -- nom de classe
+term chaineo is  "@\"[^\"]*\"";         -- chaine MOC
 -- --fin extension MOC
 
 -- pour les instructions en assembleur 'inline'
@@ -128,12 +132,13 @@ global
 -- transmission de la machine cible  (choisie par l'option -m au lancement) 
 #initType { 
 do 
-  ENTITES^tInt := new DTYPE("int", 1);
+  ENTITES^tInt    := new DTYPE("int", 1);
   ENTITES^tChar   := new DTYPE("char", 1);
-  ENTITES^tString   := new DTYPE("string", 1);
+  ENTITES^tString := new DTYPE("string", 1);
   ENTITES^tPointeurNull := new POINTEURNULL();
   ENTITES^tVoid := new DTYPE("void", 0);
   ENTITES^regLB := new Register("LB", 0);
+  ENTITES^tBool := new DTYPE("bool", 1);
 end 
 }
 
@@ -229,11 +234,16 @@ end
 }
 
 --fonctions
-FONCTION ->  TYPE ident  paro #params #adresse PARFS parf #tds #passeTypeRet #passeTailleparams BLOC #tds_fonction #verifReturn #aff #gen ;
+FONCTION ->  TYPE ident  paro #params #adresse PARFS parf #tds #passeTypeRet #passeTailleparams BLOC #tds_fonction #verifReturn #aff #gen  #getActuelleClasse ;
 global
     tailleparams : INTEGER;
     tRetour : DTYPE;
     leCode : STRING;
+#getActuelleClasse{
+do
+   BLOC^classe := null;
+end
+} 
 #passeTailleparams{
 do
   tailleparams := - PARFS^last_adr -1;
@@ -472,9 +482,14 @@ end
 }
 
 -- corps de methode et bloc d'instructions
-BLOC ->  aco #tds #passeTypeRet INSTS acf #isReturn #gen ;
+BLOC ->  aco #tds #passeTypeRet INSTS acf #isReturn #gen #getActuelleClasse  ;
 global        
   t : TDS;
+#getActuelleClasse{
+do
+   INSTS^classe := BLOC^classe;
+end
+} 
 #tds {
 do
    t :=  new TDS(BLOC^tds);
@@ -524,7 +539,13 @@ do
 end
 }
 
-INSTS -> #passeType INST #tds #adresse INSTS #isReturn #adr #gen ;
+INSTS -> #passeType INST #tds #adresse INSTS #isReturn #adr #gen #getActuelleClasse  ;
+#getActuelleClasse{
+do
+   INST^classe   := INSTS^classe;
+   INSTS1^classe := INSTS^classe;
+end
+} 
 #passeType {
 do
    INST^typeRet := INSTS^typeRet;
@@ -559,11 +580,16 @@ end
 }
 
 -- declaration de variable locale avec ou sans init
-INST ->  TYPE ident #tds #adresse #lire_resultat #code_gauche AFFX pv  #verifCompatibilite #isReturn #gen #setInit;
+INST ->  TYPE ident #tds #adresse #lire_resultat #code_gauche AFFX pv  #verifCompatibilite #isReturn #gen #setInit #getActuelleClasse ;
 global
   i : INFO;
   adresse : INTEGER;
   empl : Emplacement;
+#getActuelleClasse{
+do
+   AFFX^classe := INST^classe;
+end
+} 
 #tds {
 do
   i := INST^tds.chercherLocalement(ident^txt);
@@ -638,7 +664,12 @@ do
 end 
 }
 -- instruction expression (affectation et appel de procedure)
-INST -> #lire_resultat E pv #adresse #stds #isReturn #gen ;
+INST -> #lire_resultat E pv #adresse #stds #isReturn #gen  #getActuelleClasse ;
+#getActuelleClasse{
+do
+   E^classe := INST^classe;
+end
+} 
 #gen {
 do
     INST^code :=  E^code;
@@ -666,7 +697,12 @@ end
 }
 
 -- bloc d'instructions
-INST ->  #passeTypeRet #tds BLOC #adresse #stds #isReturn #gen ;
+INST ->  #passeTypeRet #tds BLOC #adresse #stds #isReturn #gen #getActuelleClasse  ;
+#getActuelleClasse{
+do
+   BLOC^classe := INST^classe;
+end
+} 
 #passeTypeRet{
 do
    BLOC^typeRet := INST^typeRet;
@@ -699,7 +735,14 @@ end
 }
 
 -- conditionnelle
-INST ->   si paro #lire_resultat E parf #tds #passeTypeRet BLOC SIX #adresse #stds #isReturn #gen;
+INST ->   si paro #lire_resultat E parf #tds #passeTypeRet BLOC SIX #adresse #stds #isReturn #gen #getActuelleClasse ;
+#getActuelleClasse{
+do
+   E^classe    := INST^classe;
+   BLOC^classe := INST^classe;
+   SIX^classe  := INST^classe;
+end
+} 
 #lire_resultat{
 do
   E^lire_resultat := true;
@@ -738,7 +781,12 @@ do
 end
 }
 
-SIX ->    sinon #tds #passeTypeRet BLOC #isReturn #gen;
+SIX ->    sinon #tds #passeTypeRet BLOC #isReturn #gen #getActuelleClasse ;
+#getActuelleClasse{
+do
+   BLOC^classe := SIX^classe;
+end
+} 
 #tds {
 do
   BLOC^tds := new TDS(SIX^tds);
@@ -773,7 +821,12 @@ end
 }
 
 -- retour de fonction
-INST ->  retour #lire_resultat E pv #adresse #tds #verifReturn #isReturn #gen ;
+INST ->  retour #lire_resultat E pv #adresse #tds #verifReturn #isReturn #gen  #getActuelleClasse ;
+#getActuelleClasse {
+do
+   E^classe := INST^classe;
+end
+} 
 #lire_resultat{
 do
   E^lire_resultat := true;
@@ -851,9 +904,15 @@ end
 -----------------------------------------------------------------------
 -- ici je demande est ce que j ai besoin de verifier la compatibilite des types 
 -- Si AFFX^type est nul alors pas besoin de verifier 
-E ->   A  #getType #code_gauche AFFX #verifCompatible  #estAffectable #gen #testInit  ;
+E ->   A  #getType #code_gauche AFFX #verifCompatible  #estAffectable #gen #testInit  #getActuelleClasse  ;
 global
     typeE : DTYPE;
+#getActuelleClasse {
+do
+   A^classe    := E^classe;
+   AFFX^classe := E^classe;
+end 
+}
 #getType {
 do
     typeE := A^type;
@@ -935,7 +994,12 @@ end
 }
 
 -- affectation  : laisse en somment de pile la valeur affectee
-AFFX -> affect A #getType #estVide #gen #testInit ;
+AFFX -> affect A #getType #estVide #gen #testInit #getActuelleClasse  ;
+#getActuelleClasse{
+do
+   A^classe := AFFX^classe;
+end
+} 
 global
     t : DTYPE;
 #getType {
@@ -1066,7 +1130,13 @@ end
 
 
 -- relation
-A ->   R #hcode #hadresse AX  #verifType #getType #estAffectable #adresse #gen #testInit ;
+A ->   R #hcode #hadresse AX  #verifType #getType #estAffectable #adresse #gen #testInit  #getActuelleClasse ;
+#getActuelleClasse {
+do
+   AX^classe := A^classe;
+   R^classe  := A^classe;
+end
+}
 #hcode {
 do
   AX^hcode := R^code;
@@ -1127,7 +1197,13 @@ end
 -- ******************************************************************
 
 
-AX -> OPREL R #verifType #extension #adresse #gen #testInit ;
+AX -> OPREL R #verifType #extension #adresse #gen #testInit  #getActuelleClasse ;
+#getActuelleClasse {
+do
+   R^classe := AX^classe;
+end 
+}
+
 #verifType {
 do
     if ~R^type.isOperable() then 
@@ -1242,7 +1318,13 @@ do
 end
 }
 
-R ->  T #hcode #hadresse RX  #verifType #getType #estAffectable #adresse #gen #testInit;
+R ->  T #hcode #hadresse RX  #verifType #getType #estAffectable #adresse #gen #testInit #getActuelleClasse ;
+#getActuelleClasse {
+do
+   T^classe  := R^classe;
+   RX^classe := R^classe;
+end
+} 
 -- ******************************************************************
 #testInit {
 do
@@ -1305,7 +1387,14 @@ end
 }
 
 -- additions ...
-RX ->   OPADD  T #verifType #hcode #hadresse RX #extension #adresse #gen #testInit ;
+RX ->   OPADD  T #verifType #hcode #hadresse RX #extension #adresse #gen #testInit  #getActuelleClasse  ;
+#getActuelleClasse{
+do
+   RX1^classe := RX^classe;
+   T^classe   := RX^classe;
+end
+} 
+
 #hcode {
 local
    adr_gauche : Emplacement;
@@ -1414,7 +1503,13 @@ end
 }
 
 -- multiplication, ...
-T ->  F #hcode #hadresse TX   #verifType #getType #estAffectable #adresse #testInit #gen  ;
+T ->  F #hcode #hadresse TX   #verifType #getType #estAffectable #adresse #testInit #gen   #getActuelleClasse ;
+#getActuelleClasse {
+do
+   TX^classe := T^classe;
+   F^classe  := T^classe;
+end
+}
 #hcode {
 do
    TX^hcode := F^code;
@@ -1476,7 +1571,13 @@ do
 end
 }
 
-TX ->  OPMUL  F #verifType #hcode #hadresse TX #extension #testInit #adresse #gen;
+TX ->  OPMUL  F #verifType #hcode #hadresse TX #extension #testInit #adresse #gen  #getActuelleClasse ;
+#getActuelleClasse {
+do
+   F^classe   := TX^classe;
+   TX1^classe := TX^classe;
+end
+}
 #verifType {
 do
     if ~F^type.isOperable() then 
@@ -2107,61 +2208,185 @@ do
 end
 }
 
-
-----====decommenter pour ============ MOC extension =================
---ENTITES ->  IMPLEMENTATION ENTITES ;
----- definition d'une classe
---IMPLEMENTATION ->  classe identc SUPER aco ATTRIBUTS acf METHODES fin ;
+-- ici je suppose que j ai une tds :: en attente de se mettre d accord 
+ENTITES ->  IMPLEMENTATION ENTITES ;
+-- definition d'une classe
+IMPLEMENTATION ->  classe identc SUPER aco ATTRIBUTS acf METHODES fin ;
+		-- la je dois ajouter au non terminal METHODES la classe en cours
+ 
 ---- surclasse
---SUPER -> ;
---SUPER -> dpts identc  ;
-----attributs
---ATTRIBUTS -> ;
---ATTRIBUTS -> TYPE ident pv ATTRIBUTS;
--- -- methodes
---METHODES -> ;
---METHODES ->  METHODE  METHODES ;
---METHODE ->  QUAL PTYPE   MPARFS BLOC ;
--- --qualificateur attribut ou methode :  + = de classe, - = d'instance
---QUAL -> plus;
---QUAL -> moins;
--- --type classe 
---STYPE-> identc ;
--- -- type BOOL
---STYPE-> bool ;
--- -- type "any"
---TYPE -> id  ;
----- type argument (ou retour) de methode entre parentheses
---PTYPE-> paro TYPE parf ;
----- parametres de methodes
---MPARFS -> ;
---MPARFS ->  MPARF MPARFS ;
--- -- selecteur sans parametre
---MPARF ->  ident  ;
--- -- selecteur  + type parametre + nom parametre
---MPARF ->   ident dpts  PTYPE ident;
----- object nil
---F -> nil   ;
-----Constante 'YES'
---F -> yes   ;
----- Constante 'NO'
---F -> no   ;
--- -- chaine MOC (commence par @)
---F -> chaineo ;
---  --self = this de Java
---F -> self  ;
---F -> super  ;
--- -- Appel de methode
---F -> cro F MARGS crf   ;
----- pour appel methode de classe
---F -> cro identc MARGS crf  ;
----- arguments appel de methode
---MARGS ->   ;
---MARGS ->  MARG MARGS   ;
--- -- selecteur + arg
---MARG -> ident dpts  E;
--- -- selecteur sans arg
---MARG -> ident  ;
----- --fin de MOC extension
+SUPER -> ;
+	-- lui faire herite la classe NSObject 
 
+SUPER -> dpts identc #getParent  ;
+	-- je recupere le type de la classe et je le fait monter 
+		-- je pense que pas besoin de faire monter le nom 
+#getParent {
+local
+  in : INFO;
+do
+  in := STYPE^tds_fonction.chercherLocalement(identc^txt);
+  if (in = null) then
+    error(B_14 , "la classe parent n existe pas ");
+  else
+    match in with INFOTYPE then
+        SUPER^type := in;
+    else
+        error(B_17 , " c est pas une classe");
+    end
+  end
+end
+}
+
+----attributs
+ATTRIBUTS -> ;
+	-- c est bon les attributs sont fini 
+ATTRIBUTS -> TYPE ident pv ATTRIBUTS;
+	-- j ajoute le type 
+		-- verifier qu il n est pas redefini
+
+-- -- methodes
+METHODES -> ;
+METHODES ->  METHODE  METHODES #getActuelleClasse ;
+	-- ajout methode si elle n existe pas
+#getActuelleClasse {
+do
+   METHODE^classe   := METHODES^classe;
+   METHODES1^classe := METHODES^classe;
+end
+} 
+	
+METHODE ->  QUAL PTYPE  MPARFS BLOC  #getActuelleClasse ;
+	-- ajout de la methode en fonction du qualificateur 
+		-- En fait les methodes de classes doivent etre génére automatiquement, sans prendre en compte la generation de la liste 
+		-- on ne permet pas deux methodes de meme nom 
+#getActuelleClasse {
+do
+   BLOC^classe := METHODE^classe;
+end
+} 
+-- --qualificateur attribut ou methode :  + = de classe, - = d'instance
+QUAL -> plus #getModificateur ;
+#getModificateur {
+do
+   QUAL^modific := "static";
+end 
+}
+QUAL -> moins #getModificateur ;
+#getModificateur {
+do
+   QUAL^modific := "instance";
+end 
+}
+
+-- --type classe
+STYPE-> identc #getType ;
+#getType {
+local
+  in : INFO;
+do
+  in := STYPE^tds_fonction.chercherLocalement(identc^txt);
+  if (in = null) then
+    error(B_14 , "Cette classe n'est pas encore creer ");
+  else
+    match in with INFOTYPE then
+        STYPE^type := in;
+    else
+        error(B_17 , " c est pas une classe");
+    end
+  end
+end 
+}
+	-- type classe 
+	-- je le recupere a partir de la tds et je recupere le type 
+
+-- type BOOL
+STYPE-> bool #defType ;
+#defType {
+do
+   STYPE^type := STYPE^tBool;
+end
+}
+
+-- type "any"
+TYPE -> id  ;
+	-- la classe id general 
+
+-- type argument (ou retour) de methode entre parentheses
+PTYPE-> paro TYPE parf #getType ;
+#getType {
+do 
+   PTYPE^type := TYPE^type;
+end 
+}
+
+---- parametres de methodes
+MPARFS -> ;
+MPARFS ->  MPARF MPARFS ;
+-- -- selecteur sans parametre
+MPARF ->  ident  ;
+-- -- selecteur  + type parametre + nom parametre
+MPARF ->   ident dpts  PTYPE ident;
+
+-- object nil
+F -> nil   ;
+
+----Constante 'YES'
+F -> yes  #initType ;
+#initType {
+do
+   F^type := F^tBool;
+end 
+}
+
+---- Constante 'NO'
+F -> no   ;
+#initType {
+do
+   F^type := F^tBool;
+end 
+}
+
+-- chaine MOC (commence par @)
+F -> chaineo ;
+
+--self = this de Java
+F -> self #getType ;
+#getType {
+do
+   if F^classe /= null then 
+   	F^type := F^classe; 
+   else 
+	error(B_101," Le self ne fait reference a aucune instance de classe");
+   end
+end 
+}
+
+F -> super #getType ;
+-- Appel de methode
+#getType {
+do
+   if F^classe /= null then 
+   	F^type := F^classe.geMere();
+   else 
+	error(B_101," Le super ne fait reference a aucune classe mere ");
+   end 
+end
+}
+
+F -> cro F MARGS crf   ;
+-- pour appel methode de classe
+
+
+F -> cro identc MARGS crf  ;
+-- arguments appel de methode
+	-- F recupere le 
+
+MARGS ->   ;
+MARGS ->  MARG MARGS   ;
+-- selecteur + arg
+MARG -> ident dpts  E;
+-- selecteur sans arg
+MARG -> ident  ;
+--fin de MOC extension
 end
