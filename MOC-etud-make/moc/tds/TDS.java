@@ -44,4 +44,14 @@ public class TDS extends HashMap<String, INFO> {
 		}
 		return sb.toString();
 	}
+
+	public TDS getParente() {
+		return parente;
+	}
+
+	public void setParente(TDS parente) {
+		this.parente = parente;
+	}
+	
+	
 }
