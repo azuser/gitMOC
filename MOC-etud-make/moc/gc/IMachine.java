@@ -39,7 +39,7 @@ public interface IMachine {
 	 * 
 	 * @param c the comment
 	 * @throws MOCException
-	 */
+	 *
 	public String genComment(String c);
 	
 	/**
@@ -222,7 +222,8 @@ public interface IMachine {
 	 * @throws MOCException
 	 */
 	public String genCall(String etiquette);
-	
+
+	public String genCallMethod(String fct, Emplacement e, int depl);	
 	/**
 	 * Generate the code for an affectation : =  
 	 * @param codeAdresse address to modify

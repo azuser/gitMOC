@@ -591,15 +591,31 @@ do
 end
 } 
 #tds {
+local 
+   classeEnglobante : INFO;
 do
   i := INST^tds.chercherLocalement(ident^txt);
   if (i != null) then
         error(B_03, "nom de variable deja utilise ");   -- write fonction existante
     -- write nom de variable deja utilise
   else
-    empl := new Emplacement(INST^hadr, INST^regLB);
-    i := new INFOVAR(TYPE^type, empl);
-    INST^tds.inserer(ident^txt, i);
+     
+    classeEnglobante := INST^tds.chercherLocalement("self");
+    if (classeEnglobant /= null) then  -- methode de classe je dois verifier que c est un classe 
+       match classeEnglobant with INFOVAR then 
+	  if classeEnglobante.isAttribut(ident^txt) /= null then
+	     error(B_233, " "+ ident^txt + " est un attribut de la classe ");
+          else -- ce n est pas un attribut : je le cree 
+	     empl := new Emplacement(INST^hadr, INST^regLB);
+             i := new INFOVAR(TYPE^type, empl);
+             INST^tds.inserer(ident^txt, i);
+          end 
+       end 
+    else  -- ce n est pas une methode de classe 
+       empl := new Emplacement(INST^hadr, INST^regLB);
+       i := new INFOVAR(TYPE^type, empl);
+       INST^tds.inserer(ident^txt, i);
+    end 
   end 
   INST^stds := INST^tds;
 end
@@ -2015,27 +2031,52 @@ end
 -- *********************************************************
 
 -- acces variable
-F ->  ident #gen #getType #testInit  #estAffectable ;
+F ->  ident #gen #getType   #estAffectable ;
+-- il faut chercher premierement dans la 
 global 
-   i : INFOVAR;
    type : DTYPE;
 #gen {
 local 
-  t : TDS;
-  iTemp : INFO;
-  
+  t          	   : TDS;
+  iTemp            : INFO;
+  classeEnglobante : INFO;
+  champAttribut    : CHAMP;
 do 
   t := F^tds;
   iTemp := t.chercherGlobalement(ident^txt);
   if (iTemp = null) then
-     error(B_16 , "la variable n existe pas :"+ident^txt); 
+    	-- je verifie si c est un attribut 
+      classeEnglobante := INST^tds.chercherLocalement("self");
+
+      if (classeEnglobant /= null) then                        
+         match classeEnglobant with INFOVAR then
+	    champAttribut := classeEnglobante.isAttribut(ident^txt); 
+
+	    if champAttribut = null then
+     	       error(B_16 , "la variable n existe pas :"+ident^txt); 
+            else -- c est un attribut  
+	       type := champAttribut.getType();
+	       -- recuperation de l adresse du champs 
+               F^code := F^machine.genComment("acces a l attribut  "+ident^txt)
+                             + F^machine.genLire("", "1", classeEnglobante.getEmpl())   -- a revoir la taille de la variable avec leger  
+                             + F^machine.genAdrField(champAttribut.getDep()); -- to call the function depending on his number (deplacement)
+
+               F^adresse := null; -- prb
+               F^est_adresse := true;  -- prb
+               F^var := null;   -- a revoir 
+               F^initialiser := true;  -- a revoir
+      	       -- a completer c1 
+            end 
+         end 
+      end 
   else
      match iTemp with INFOVAR then
-        i := iTemp;
-        type := i.getType();
+        type := iTemp.getType();
         F^code := F^machine.genComment("acces a "+ident^txt);--genLire(ident^txt, type.getTaille(), i.getEmpl());
-        F^adresse := i.getEmpl();
+        F^adresse := iTemp.getEmpl();
         F^est_adresse := false;
+        F^var := iTemp;
+        F^initialiser := iTemp.getInitialiser();
     else
         error(B_17 , " c est pas une variable ca");
     end
@@ -2043,15 +2084,6 @@ do
   end
 end 
 }
--- *********************************************************
-#testInit {
-do
-        F^var := i;
-        F^initialiser := i.getInitialiser();
-end
-}
--- *********************************************************
-
 
 #getType {
 do
@@ -2208,185 +2240,602 @@ do
 end
 }
 
--- ici je suppose que j ai une tds :: en attente de se mettre d accord 
-ENTITES ->  IMPLEMENTATION ENTITES ;
--- definition d'une classe
-IMPLEMENTATION ->  classe identc SUPER aco ATTRIBUTS acf METHODES fin ;
-		-- la je dois ajouter au non terminal METHODES la classe en cours
- 
----- surclasse
-SUPER -> ;
-	-- lui faire herite la classe NSObject 
 
-SUPER -> dpts identc #getParent  ;
-	-- je recupere le type de la classe et je le fait monter 
-		-- je pense que pas besoin de faire monter le nom 
-#getParent {
+------------------------------------------------------------- The micoOC  --------------------------------------------------------------
+
+ENTITES ->  IMPLEMENTATION #tds_classe ENTITES #tds_fonction ;
+
+#tds_fonction {
+do
+    ENTITES^stds_fonction := ENTITES1^stds_fonction;
+end
+}
+
+#tds_classe {
+do
+    ENTITES1^tds_classe := IMPLEMENTATION^stds_classe;
+end
+}
+
+--definition d'une classe
+IMPLEMENTATION ->  classe identc SUPER aco #attributs ATTRIBUTS acf #tds_classe METHODES #stds_classe fin ;
+
+#attributs {
+do
+    ATTRIBUTS^hdep := 0;
+    ATTRIBUTS^hlchamps := new LCHAMPS();
+end
+}
+
+#tds_classe {
 local
-  in : INFO;
+    nom_classe : String;
+    iclasse : INFOCLASSE;
+    classe : CLASSE;
+    nom_classe_mere : String;
+    iclasse_mere : INFOCLASSE;
+    classe_mere : CLASSE;
+    att : LCHAMPS;
 do
-  in := STYPE^tds_fonction.chercherLocalement(identc^txt);
-  if (in = null) then
-    error(B_14 , "la classe parent n existe pas ");
-  else
-    match in with INFOTYPE then
-        SUPER^type := in;
+    nom_classe := identc^txt;
+    iclasse := IMPLEMENTATION^tds_classe.chercherLocalement(nom_classe);
+    nom_classe_mere := SUPER^classe_mere;
+    iclasse_mere := IMPLEMENTATION^tds_classe.chercherLocalement(nom_classe_mere);
+    classe_mere := iclasse_mere.getType();
+    att := ATTRIBUTS^lchamps;
+    if (iclasse /= null) then
+        error(Class_exist, nom_classe);
     else
-        error(B_17 , " c est pas une classe");
+        classe := new CLASSE(nom_classe, att, classe_mere);
+        iclasse := new INFOCLASSE(classe, iclasse_mere);
+        IMPLEMENTATION^tds_classe.inserer(nom_classe, iclasse);
+        METHODES^tds_classe := IMPLEMENTATION^tds_classe;
+        METHODES^classe := nom_classe;
     end
-  end
 end
 }
 
-----attributs
-ATTRIBUTS -> ;
-	-- c est bon les attributs sont fini 
-ATTRIBUTS -> TYPE ident pv ATTRIBUTS;
-	-- j ajoute le type 
-		-- verifier qu il n est pas redefini
-
--- -- methodes
-METHODES -> ;
-METHODES ->  METHODE  METHODES #getActuelleClasse ;
-	-- ajout methode si elle n existe pas
-#getActuelleClasse {
+#stds_classe {
 do
-   METHODE^classe   := METHODES^classe;
-   METHODES1^classe := METHODES^classe;
+    IMPLEMENTATION^stds_classe := METHODES^stds_classe;
 end
-} 
-	
-METHODE ->  QUAL PTYPE  MPARFS BLOC  #getActuelleClasse ;
-	-- ajout de la methode en fonction du qualificateur 
-		-- En fait les methodes de classes doivent etre génére automatiquement, sans prendre en compte la generation de la liste 
-		-- on ne permet pas deux methodes de meme nom 
-#getActuelleClasse {
-do
-   BLOC^classe := METHODE^classe;
-end
-} 
--- --qualificateur attribut ou methode :  + = de classe, - = d'instance
-QUAL -> plus #getModificateur ;
-#getModificateur {
-do
-   QUAL^modific := "static";
-end 
-}
-QUAL -> moins #getModificateur ;
-#getModificateur {
-do
-   QUAL^modific := "instance";
-end 
 }
 
--- --type classe
-STYPE-> identc #getType ;
-#getType {
+-- surclasse
+SUPER -> #classe;
+
+#classe {
+do
+    SUPER^classe_mere := "";
+end
+}
+
+SUPER -> dpts identc  #classe;
+
+#classe {
+do
+    SUPER^classe_mere := identc^txt;
+end
+}
+
+--attributs
+ATTRIBUTS -> #attributs ;
+
+#attributs {
+do
+    ATTRIBUTS^lchamps := ATTRIBUTS^hlchamps; 
+end
+}
+
+ATTRIBUTS -> TYPE ident pv #attributs1 ATTRIBUTS #attributs2;
+
+#attributs1 {
 local
-  in : INFO;
+    lc : LCHAMPS;
+    c : CHAMP;
 do
-  in := STYPE^tds_fonction.chercherLocalement(identc^txt);
-  if (in = null) then
-    error(B_14 , "Cette classe n'est pas encore creer ");
-  else
-    match in with INFOTYPE then
-        STYPE^type := in;
+    lc := ATTRIBUTS^hlchamps;
+    c := lc.chercher(ident^txt);
+    if (c /= null) then
+        error(Att_exist, ident^txt);
     else
-        error(B_17 , " c est pas une classe");
+        c := new CHAMP(ident^txt, TYPE^type, ATTRIBUTS^hdep);
+        lc.inserer(c);
+        ATTRIBUTS1^hlchamps := lc;
     end
-  end
-end 
+    ATTRIBUTS1^hdep := ATTRIBUTS^hdep + TYPE^type.getTaille();
+end
 }
-	-- type classe 
-	-- je le recupere a partir de la tds et je recupere le type 
 
+#attributs2 {
+do
+    ATTRIBUTS^lchamps := ATTRIBUTS1^lchamps; 
+end
+}
+
+-- methodes
+METHODES -> #stds_classe;
+
+#stds_classe {
+do
+    METHODES^stds_classe := METHODES^tds_classe;
+end
+}
+
+METHODES ->  METHODE  METHODES #stds_classe;
+
+#stds_classe {
+do
+    METHODES^stds_classe := METHODES1^stds_classe;
+end
+}
+
+METHODE ->  QUAL PTYPE #params #adresse MPARFS #tds #tds_classe #passeTailleparams  BLOC #gen  ;
+global
+    tailleparams : INTEGER;
+    ic : INFOCLASSE;
+    c : CLASSE;
+
+#passeTailleparams{
+do
+  tailleparams := -MPARFS^last_adr -1;
+  BLOC^htailleparams := tailleparams;
+end
+}
+
+#params {
+local
+    i : INFOVAR;
+do
+    MPARFS^hparams := new PARAMETRES();
+    MPARFS^htdspar := new TDS(METHODE^tds);
+    if (!QUAL^qual | MPARFS^nom = "init") then
+	    ic := METHODE^tds_classe.chercherLocalement(METHODE^classe);
+	    c := ic.getType();
+	    i := new INFOVAR(new POINTEUR(c), new Emplacement((-1), MPARFS^regLB ));
+	    MPARFS^htdspar.inserer("self", i);
+    end
+end
+}
+
+#adresse {
+local
+    n : Integer;
+do
+    if (!QUAL^qual | MPARFS^nom = "init") then
+        n := -2;                 -- initialisation des adresses parametre
+    else
+        n := -1;
+    end
+    MPARFS^hadr := n;
+    BLOC^hadr := 3;               -- initialisation des adresse de bloc
+end
+}
+
+#tds {
+do
+    BLOC^tds := MPARFS^tdspar;
+end
+}
+
+#tds_classe {
+local
+    im : INFOMETHODE;
+do
+    im := new INFOMETHODE(PTYPE^type, MPARFS^params, QUAL^qual, 0, METHODE^classe); -- je ne pense pas que ce constructeur existe 
+    ic.inserer(MPARFS^nom, im);
+    BLOC^tds_classe := ic;
+    METHODE^stds_classe := ic;
+end
+}
+
+#gen {
+local 
+    tRetour : DTYPE;
+    leCode  : STRING;
+do
+  leCode := METHODE^machine.genFonction(c.getNom() +"_" + ident^txt, BLOC^code);
+  tRetour := PTYPE^type;
+  if(tRetour.isVoid()) then
+    -- depiler les arguments
+    leCode := leCode + METHODE^machine.genRetour(tailleparams, 0, "");
+  end
+  METHODE^code := leCode;
+end
+}
+
+
+--qualificateur attribut ou methode :  + = de classe, - = d'instance
+QUAL -> plus #qual;
+
+#qual {
+do
+    QUAL^qual := true;
+end
+}
+
+QUAL -> moins #qual;
+
+#qual {
+do
+    QUAL^qual := false;
+end
+}
+
+--type classe 
+STYPE-> identc ;
 -- type BOOL
-STYPE-> bool #defType ;
-#defType {
-do
-   STYPE^type := STYPE^tBool;
-end
-}
-
+STYPE-> bool ;
 -- type "any"
 TYPE -> id  ;
-	-- la classe id general 
-
 -- type argument (ou retour) de methode entre parentheses
-PTYPE-> paro TYPE parf #getType ;
-#getType {
-do 
-   PTYPE^type := TYPE^type;
-end 
+PTYPE-> paro TYPE parf ;
+-- parametres de methodes
+MPARFS -> #parametres;
+
+#parametres {
+do
+    MPARFS^params := MPARFS^hparams;
+    MPARFS^tdspar := MPARFS^htdspar;
+    MPARFS^nom := "";
+end
 }
 
----- parametres de methodes
-MPARFS -> ;
-MPARFS ->  MPARF MPARFS ;
--- -- selecteur sans parametre
-MPARF ->  ident  ;
--- -- selecteur  + type parametre + nom parametre
-MPARF ->   ident dpts  PTYPE ident;
+MPARFS ->  MPARF #parametres1 MPARFS #parametres2;
+
+#parametres1 {
+do
+    MPARFS1^hparams := MPARF^params;
+    MPARFS1^htdspar := MPARF^tdspar;
+    MPARFS1^hadr := MPARF^adr;
+end
+}
+
+#parametres2 {
+do
+    MPARFS^params := MPARFS1^params;
+    MPARFS^tdspar := MPARFS1^tdspar;
+    MPARFS^nom := MPARF^nom + MPARFS1^nom;
+end
+}
+
+-- selecteur sans parametre
+MPARF ->  ident  #parametres #adresse;
+
+#parametres {
+do
+    MPARF^params := MPARF^hparams;
+    MPARF^tdspar := MPARF^htdspar;
+    MPARF^nom := ident^txt;
+end
+}
+
+#adresse {
+do
+    MPARF^adr := MPARF^hadr;
+end
+}
+
+-- selecteur  + type parametre + nom parametre
+MPARF ->   ident dpts  PTYPE ident #parametres #adresse;
+
+#parametres {
+local
+    p : PARAMETRES;
+    i : INFOVAR;
+    t : TDS;
+do
+    i := new INFOVAR(PTYPE^type, new Emplacement(MPARF^hadr, MPARF^regLB ));
+    p := MPARF^hparams;
+    p.inserer(TYPE^type);
+    MPARF^params := p;
+    t := MPARF^htdspar;
+    if (t.chercherLocalement(ident1^txt) = null) then
+        t.inserer(ident1^txt, i);
+    else
+        error(param_exists, ident1^txt);
+    end
+    MPARF^tdspar := t;
+    MPARF^nom := ident^txt + ":";
+end
+}
+
+#adresse {
+local
+  taille : INTEGER;
+do
+  taille := PTYPE^type.getTaille();
+  MPARF^adr := MPARF^hadr - taille;
+end
+}
 
 -- object nil
 F -> nil   ;
 
-----Constante 'YES'
-F -> yes  #initType ;
-#initType {
+--Constante 'YES'
+F -> yes  #gen  ;
+#gen {
 do
-   F^type := F^tBool;
-end 
+  F^code := F^machine.genBoolean(true);
+  F^est_adresse := false;
+  F^adresse := null;
+end
 }
 
----- Constante 'NO'
+
+
+-- Constante 'NO'
 F -> no   ;
-#initType {
+#gen {
 do
-   F^type := F^tBool;
-end 
+  F^code := F^machine.genBoolean(false);
+  F^est_adresse := false;
+  F^adresse := null;
+end
 }
 
 -- chaine MOC (commence par @)
 F -> chaineo ;
 
 --self = this de Java
-F -> self #getType ;
-#getType {
+F -> self #gen ;
+#gen {
+local
+  t : TDS;
+  i : INFOVAR;
 do
-   if F^classe /= null then 
-   	F^type := F^classe; 
-   else 
-	error(B_101," Le self ne fait reference a aucune instance de classe");
-   end
-end 
-}
+  t := F^tds;
+  i := t.chercherGlobalement("self");
+  if (i = null) then
+     error(B_16 , " vous n etes pas dans une instance");
+  else
+     match i with INFOVAR then
+        F^code := F^machine.genComment("acces a self");
+        F^adresse := i.getEmpl();
+        F^est_adresse := false;
+    else
+        error(B_17 , " c est pas une variable ca");
+    end
 
-F -> super #getType ;
--- Appel de methode
-#getType {
-do
-   if F^classe /= null then 
-   	F^type := F^classe.geMere();
-   else 
-	error(B_101," Le super ne fait reference a aucune classe mere ");
-   end 
+  end
 end
 }
 
-F -> cro F MARGS crf   ;
+
+F -> super #gen  ;
+#gen {
+local
+  t : TDS;
+  i : INFOVAR;
+do
+  t := F^tds;
+  i := t.chercherGlobalement("self");
+  if (i = null) then
+     error(B_16 , " vous n etes pas dans une instance");
+  else
+     match i with INFOVAR then
+        F^code := F^machine.genComment("acces a super");
+        F^adresse := i.getEmpl();
+        F^est_adresse := false;
+    else
+        error(B_17 , " c est pas une variable ca");
+    end
+
+  end
+end
+}
+
+
+-- -- Appel de methode
+F -> cro F #params MARGS crf  #bonappel #gen ;
+global
+    ic : INFOCLASSE;
+    im : INFOMETHODE;
+
+#gen {
+do
+   F^code := MARGS^code
+                + F^machine.genLire("", F^type.getTaille(), F^adresse)            -- to modify the self of the fonction and give it the current instance 
+                + F^machine.genCallMethod(MARGS^nom, ic.getTv() ,im.getNumero()); -- to call the function depending on his number (deplacement)
+end
+}
+
+#params {
+do
+    MARGS^hparams := new PARAMETRES();
+end
+}
+
+#bonappel {
+local
+    t : DTYPE;
+    p : POINTEUR;
+    c : CLASSE;
+    i : INFO;
+    tds : TDS;
+    params : PARAMETRES;
+do
+    t := F^type;
+    match t with POINTEUR then -- on vérifie que l'instance est bien un pointeur
+        p := t;
+        t := p.getType();
+    else
+        error(pas_pointeur, "ceci n'est pas un pointeur");
+    end
+    match t with CLASSE then  -- on vérifie que l'instance est bien un pointeur sur un struct
+        c := p;
+    else
+        error(pas_instance, "ceci n'est pas une instance de classe");
+    end
+    i := F^tds_classe.chercherLocalement(c.getNomClasse()); -- on recupere l'infoclasse
+    if (i = null) then
+        error(classe_inexistante, c.getNomClasse());
+    else
+        match i with INFOCLASSE then
+            ic := i;
+            tds := ic.getMethodes();
+            i := tds.chercherGlobalement(MARGS^nom); -- in recupere l'infomethode
+            if (i = null) then
+                error(methode_inexistante, c.getNomClasse(), MARGS^nom);
+            else
+                match i with INFOMETHODE then
+                    im := i;
+                    params := im.getParametres();
+                    if (im.isClassMethod()) then
+                        error(pas_methode_instance, c.getNomClasse(), MARGS^nom);
+                    end
+                    if (!params.compareTo(MARGS^params)) then -- on vérifie les parametres
+                        error(mauvais_parametres, c.getNomClasse(), MARGS^nom);
+                    end
+                else
+                    error(pas_methode, "ceci n'est pas une methode");
+                end
+            end
+        else
+            error(pas_classe, "ceci n'est pas une classe");
+        end
+    end
+end
+}
+
+
+
 -- pour appel methode de classe
+F -> cro identc #params MARGS crf #bonappel #gen  ;
+global
+    ic : INFOCLASSE;
+    im : INFOMETHODE;
+    c : CLASSE;
+#gen {
+do
+   if MARGS^nom = "init" then -- je dois allouer de la memoire 
+      String instance := F^machine.genMallocInstance(c.getSizeAttributs());
+      F^code := MARGS^code
+                + instance
+                + F^machine.genCallMethod(MARGS^nom, ic.getTv() ,im.getNumero()); -- to call the function depending on his number (deplacement)
+   else
+      F^code := MARGS^code
+                + F^machine.genCallMethod(MARGS^nom, ic.getTv() ,im.getNumero()); -- to call the function depending on his number (deplacement)
+   end
+end
+}
 
 
-F -> cro identc MARGS crf  ;
+#params {
+do
+    MARGS^hparams := new PARAMETRES();
+end
+}
+
+#bonappel {
+local
+    t : DTYPE;
+    p : POINTEUR;
+    i : INFO;
+    tds : TDS;
+    params : PARAMETRES;
+do
+    i := F^tds_classe.chercherLocalement(identc^txt); -- on recupere l'infoclasse
+    if (i = null) then
+        error(classe_inexistante, identc^txt);
+    else
+        match i with INFOCLASSE then
+            ic := i;
+            tds := ic.getMethodes();
+            i := tds.chercherGlobalement(MARGS^nom); -- in recupere l'infomethode
+            if (i = null) then
+                error(methode_inexistante, identc^txt, MARGS^nom);
+            else
+                match i with INFOMETHODE then
+                    im := i;
+                    params := im.getParametres();
+                    if (!im.isClassMethod()) then
+                        error(pas_methode_classe, identc^txt, MARGS^nom);
+                    end
+                    if (!params.compareTo(MARGS^params)) then -- on vérifie les parametres
+                        error(mauvais_parametres, identc^txt, MARGS^nom);
+                    end
+                else
+                    error(pas_methode, "ceci n'est pas une methode");
+                end
+            end
+        else
+            error(pas_classe, "ceci n'est pas une classe");
+        end
+    end
+end
+}
+
 -- arguments appel de methode
-	-- F recupere le 
+MARGS ->  #parametres #gen;
+#gen {
+do
+  MARGS^code := "";
+end
+}
 
-MARGS ->   ;
-MARGS ->  MARG MARGS   ;
+#parametres {
+do
+    MARGS^params := MARGS^hparams;
+    MARGS^nom := "";
+end
+}
+
+MARGS ->  MARG #parametres1 MARGS #parametres2 #gen ;
+#gen {
+local
+comment : String;
+do
+  comment := MARGS^machine.genComment("empilement des parametres");
+  MARGS^code := comment + MARGS1^code + MARG^code;
+end
+}
+
+#parametres1 {
+do
+    MARGS^hparams := MARG^params;
+end
+}
+
+#parametres2 {
+do
+    MARGS^params := MARGS1^params;
+    MARGS^nom := MARG^nom + MARGS1^nom;
+end
+}
+
 -- selecteur + arg
-MARG -> ident dpts  E;
+MARG -> ident dpts  E #parametres #gen ;
+#gen {
+local
+do
+  MARG^code := E^code;
+end
+}
+
+#parametres {
+do
+    MARG^hparams.inserer(E^type);
+    MARG^params := MARG^hparams;
+    MARG^nom := ident^txt + ":";
+end
+}
+
 -- selecteur sans arg
-MARG -> ident  ;
+MARG -> ident #parametres #gen ;
+#gen {
+do
+   MARG^code := "";
+end
+}
+
+#parametres {
+do
+    MARG^params := MARG^hparams;
+    MARG^nom := ident^txt;
+end
+}
+
 --fin de MOC extension
+
 end

@@ -105,6 +105,18 @@ public class MTAM extends AbstractMachine {
 		return genComment("Appel de " + etiquette) + "\tCALL(SB) _" + etiquette + "\n";
 	}
 
+	@Override
+        public String genCallMethod(String fct, Emplacement e, int depl){
+		String temp ="";
+		/* La recuperation du LOADA */
+		temp = genEntier("0");
+		temp = temp + genOpBinaire(genPushAdresse(e), genIPlus, genEntier(""+depl)); 
+		temp = temp + genReadIndirect
+		return genComment("Appel de methode "+fct) 
+			+ temp
+			+ "\nCALLI";
+	}
+
 	//Obsolete
 	@Override
 	public String genAffectation(String codeAdresse, String codeValeur, int taille) {
@@ -245,4 +257,11 @@ public class MTAM extends AbstractMachine {
 		return genComment("adresse en sommet de pile inutile : depiler!") +
 				genFree(1);
 	}
+
+	@Override
+	public String genAdrField(int dep) {
+                return "\t;Calcul deplacement struct " + dep + "\n" + "\tLOADL " + dep
+                                + "\n\tSUBR Iadd\n";
+        }
+
 }
