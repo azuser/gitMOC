@@ -39,7 +39,7 @@ public interface IMachine {
 	 * 
 	 * @param c the comment
 	 * @throws MOCException
-	 *
+	 */
 	public String genComment(String c);
 	
 	/**
@@ -311,5 +311,7 @@ public interface IMachine {
 	 * @throws MOCException
 	 */
 	public String genPopAdresse();
+
+	public String genAdrField(int d);
 
 }

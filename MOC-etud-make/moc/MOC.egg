@@ -75,7 +75,7 @@ syn code : STRING for ENTITES, FONCTION, BLOC, INSTS, INST, SIX, E, A, AFFX, AX,
 inh hcode : STRING for AX, RX, TX;
 inh code_gauche: STRING for AFFX; -- code du terme a gauche de l'operateur
 -- recuperation de la classe mere 
-modific : STRING for QUAL;
+syn modific : STRING for QUAL;
 
 
 ------   terminaux
@@ -2258,30 +2258,36 @@ end
 }
 
 --definition d'une classe
-IMPLEMENTATION ->  classe identc SUPER aco #attributs ATTRIBUTS acf #tds_classe METHODES #stds_classe fin ;
+IMPLEMENTATION ->  classe identc SUPER #classeMere aco #attributs ATTRIBUTS acf #tds_classe METHODES #stds_classe fin ;
+global 
+    classe_mere : CLASSE;
+
+#classeMere {
+local 
+   nom_classe_mere : String;
+   iclasse_mere : INFOCLASSE; 
+do
+   nom_classe_mere := SUPER^classe_mere;
+   iclasse_mere := IMPLEMENTATION^tds_classe.chercherLocalement(nom_classe_mere);
+   classe_mere := iclasse_mere.getType();
+end 
+}
 
 #attributs {
 do
-    ATTRIBUTS^hdep := 0;
+    ATTRIBUTS^hdep := classe_mere.getLastDepl();   -- pour permettre la continuite de la classe mere
     ATTRIBUTS^hlchamps := new LCHAMPS();
 end
 }
 
-#tds_classe {
-local
+#tds_clapour permettre la continuite de la classe merel
     nom_classe : String;
     iclasse : INFOCLASSE;
     classe : CLASSE;
-    nom_classe_mere : String;
-    iclasse_mere : INFOCLASSE;
-    classe_mere : CLASSE;
     att : LCHAMPS;
 do
     nom_classe := identc^txt;
     iclasse := IMPLEMENTATION^tds_classe.chercherLocalement(nom_classe);
-    nom_classe_mere := SUPER^classe_mere;
-    iclasse_mere := IMPLEMENTATION^tds_classe.chercherLocalement(nom_classe_mere);
-    classe_mere := iclasse_mere.getType();
     att := ATTRIBUTS^lchamps;
     if (iclasse /= null) then
         error(Class_exist, nom_classe);

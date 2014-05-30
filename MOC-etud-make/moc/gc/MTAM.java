@@ -110,8 +110,8 @@ public class MTAM extends AbstractMachine {
 		String temp ="";
 		/* La recuperation du LOADA */
 		temp = genEntier("0");
-		temp = temp + genOpBinaire(genPushAdresse(e), genIPlus, genEntier(""+depl)); 
-		temp = temp + genReadIndirect
+		temp = temp + genOpBinaire(genPushAdresse(e), genIPlus(), genEntier(""+depl)); 
+		//temp = temp + genReadIndirect();
 		return genComment("Appel de methode "+fct) 
 			+ temp
 			+ "\nCALLI";
